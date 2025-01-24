@@ -9,5 +9,7 @@
 #include <freetype/freetype.h>
 
 
-#include "src/GLUtils.h"
+#include "src/opengl/GLUtils.h"
+#include "src/opengl/VertexArrayObject.h"
+#include "src/opengl/VertexBufferObject.h"
 

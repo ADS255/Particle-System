@@ -88,19 +88,15 @@ int main()
 		0.5f, -0.5f, 0.0f   // Bottom-right vertex
 	};
 
-	unsigned int vertexArray;
-	unsigned int vertexBuffer;
+	VertexArrayObject vertexArray = VertexArrayObject();
+	vertexArray.Bind();
+	VertexBufferObject vertexBuffer = VertexBufferObject(vertices, sizeof(vertices));
+	
+	// Link the position attribute (location 0) with the vertex buffer object
+	// numComponents = 3 (x, y, z), type = GL_FLOAT, stride = 0, offset = 0
+	vertexArray.LinkAttribute(vertexBuffer, 0, 3, GL_FLOAT, 0, (void*)0);
+
 	unsigned int shaderProgram;
-
-	glGenVertexArrays(1, &vertexArray);
-	glBindVertexArray(vertexArray);
-
-	glGenBuffers(1, &vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
 	unsigned int vertexShader = GLUtils::LoadShader("shaders/basic.vert", GL_VERTEX_SHADER);
 	unsigned int fragmentShader = GLUtils::LoadShader("shaders/basic.frag", GL_FRAGMENT_SHADER);
@@ -132,10 +128,10 @@ int main()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Use shader program
+		vertexArray.Bind();
+
 		glUseProgram(shaderProgram);
 
-		// Draw triangle
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glfwSwapBuffers(window);

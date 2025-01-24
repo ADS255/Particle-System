@@ -1,6 +1,10 @@
 add_library(src STATIC
-    "GLUtils.h"
-    "GLUtils.cpp"
+   "opengl/GLUtils.h"
+   "opengl/GLUtils.cpp"
+   "opengl/VertexArrayObject.cpp" 
+   "opengl/VertexArrayObject.h"
+   "opengl/VertexBufferObject.cpp"
+   "opengl/VertexBufferObject.h" 
 )
 
 target_include_directories(src PRIVATE
