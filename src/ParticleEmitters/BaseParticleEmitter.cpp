@@ -11,6 +11,7 @@
 #include "BaseParticleEmitter.h"
 #include "BaseParticleEmitter.h"
 #include "BaseParticleEmitter.h"
+#include "BaseParticleEmitter.h"
 
 BaseParticleEmitter::BaseParticleEmitter(unsigned int particleCount, float particleLifetime)
 {
@@ -48,6 +49,10 @@ BaseParticleEmitter::BaseParticleEmitter(unsigned int particleCount, float parti
 
 	uMVPLoc = glGetUniformLocation(shaderProgram, "uMVP");
 
+}
+
+BaseParticleEmitter::~BaseParticleEmitter()
+{
 }
 
 void BaseParticleEmitter::Update(double deltaTime)
