@@ -11,7 +11,7 @@ public:
 	VertexArrayObject();
 
 	void LinkVertexBufferObject(VertexBufferObject VBO, GLuint layout);
-	void LinkAttribute(VertexBufferObject& VBO, GLuint layout,GLuint numComponents,GLenum type,GLsizeiptr stride,void* offset);
+	void LinkAttribute(VertexBufferObject& VBO, GLuint layout,GLuint numComponents,GLenum type,GLboolean normalised,GLsizeiptr stride,void* offset);
 	void Bind();
 	void Unbind();
 	void Delete();

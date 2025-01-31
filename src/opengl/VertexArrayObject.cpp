@@ -13,10 +13,10 @@ void VertexArrayObject::LinkVertexBufferObject(VertexBufferObject VBO, GLuint la
 	VBO.Unbind();
 }
 
-void VertexArrayObject::LinkAttribute(VertexBufferObject& VBO, GLuint layout, GLuint numComponents, GLenum type, GLsizeiptr stride, void* offset)
+void VertexArrayObject::LinkAttribute(VertexBufferObject& VBO, GLuint layout, GLuint numComponents, GLenum type,GLboolean normalised ,GLsizeiptr stride, void* offset)
 {
 	VBO.Bind();
-	glVertexAttribPointer(layout, numComponents,type,GL_FALSE, stride, offset);
+	glVertexAttribPointer(layout, numComponents,type,normalised, stride, offset);
 	glEnableVertexAttribArray(layout);
 	VBO.Unbind();
 }
