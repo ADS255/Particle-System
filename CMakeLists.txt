@@ -13,7 +13,7 @@ project("ParticleSystem")
 # Define the base executable target
 add_executable(ParticleSystem "App.cpp" "App.h")
 
-# Make sure that GLFW and GLAD are globally accessible.
+
 set(GLFW_DIR "${EXTERNAL_ROOT}/glfw")
 set(GLAD_DIR "${EXTERNAL_ROOT}/glad")
 set(GLM_DIR "${EXTERNAL_ROOT}/glm")
@@ -24,9 +24,9 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET ParticleSystem PROPERTY CXX_STANDARD 20)
 endif()
 
-# Define INTERFACE libraries for GLFW and GLAD first
+
 add_library(glfw INTERFACE)
-target_include_directories(glfw INTERFACE ${GLFW_DIR}/include)
+target_include_directories(glfw INTERFACE ${GLFW_DIR})
 target_link_libraries(glfw INTERFACE ${GLFW_DIR}/lib/glfw3.lib)
 
 add_library(glad INTERFACE)
@@ -36,11 +36,9 @@ target_sources(glad INTERFACE ${GLAD_DIR}/src/glad.c)
 add_library(glm INTERFACE)
 target_include_directories(glm INTERFACE ${GLM_DIR})
 
-
 add_library(freetype INTERFACE)
 target_include_directories(freetype INTERFACE ${FREETYPE_DIR}/include)
 target_link_libraries(freetype INTERFACE ${FREETYPE_DIR}/lib/freetype.lib)
-
 
 add_custom_command(TARGET ParticleSystem POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -49,6 +47,16 @@ add_custom_command(TARGET ParticleSystem POST_BUILD
 )
 
 add_subdirectory(src)
+add_subdirectory(external/imgui)
+
+target_include_directories(ParticleSystem PUBLIC
+    ${CMAKE_SOURCE_DIR}/external/imgui
+
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/opengl
+    ${CMAKE_SOURCE_DIR}/src/ParticleEmitters
+)
+
 
 # Link the libraries to the main executable
 target_link_libraries(ParticleSystem PUBLIC
@@ -56,6 +64,7 @@ target_link_libraries(ParticleSystem PUBLIC
     glfw
     glm
     freetype
+    imgui
 
     src
 )

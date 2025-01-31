@@ -82,38 +82,39 @@ int main()
 	std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
 	std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
-	float vertices[] = {
-		0.0f,  0.5f, 0.0f,  // Top vertex
-	   -0.5f, -0.5f, 0.0f,  // Bottom-left vertex
-		0.5f, -0.5f, 0.0f   // Bottom-right vertex
-	};
+	glm::mat4 model = glm::mat4(1.0f);
 
-	VertexArrayObject vertexArray = VertexArrayObject();
-	vertexArray.Bind();
-	VertexBufferObject vertexBuffer = VertexBufferObject(vertices, sizeof(vertices));
-	
-	// Link the position attribute (location 0) with the vertex buffer object
-	// numComponents = 3 (x, y, z), type = GL_FLOAT, stride = 0, offset = 0
-	vertexArray.LinkAttribute(vertexBuffer, 0, 3, GL_FLOAT, 0, (void*)0);
+	glm::vec3 cameraPosition(0.0f, 3.0f, 3.0f);
+	glm::vec3 targetPosition(0.0f, 0.0f, 0.0f);
+	glm::vec3 up(0.0f, 1.0f, 0.0f);
 
-	unsigned int shaderProgram;
+	glm::mat4 view = glm::lookAt(cameraPosition, targetPosition, up);
 
-	unsigned int vertexShader = GLUtils::LoadShader("shaders/basic.vert", GL_VERTEX_SHADER);
-	unsigned int fragmentShader = GLUtils::LoadShader("shaders/basic.frag", GL_FRAGMENT_SHADER);
+	float fov = 90.0f;
+	float aspectRatio = (float)width / (float)height;
+	float nearPlane = 0.1f;
+	float farPlane = 1000.0f;
 
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
+	glm::mat4 projection = glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
 
+	glm::vec3 cameraDirection = glm::normalize(cameraPosition - targetPosition);
 
-	int success;
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		char infoLog[512];
-		glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-		std::cerr << "Shader program linking error:\n" << infoLog << std::endl;
-	}
+	glm::vec3 right = glm::normalize(glm::cross(up, cameraDirection));
+
+	glm::mat4 mvp = projection * view * model;
+
+	BaseParticleEmitter bpe = BaseParticleEmitter(2,10);
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 460 core");
 
 
 	double previousFrameTime = glfwGetTime();
@@ -122,20 +123,38 @@ int main()
 		double deltaTime = currentTime - previousFrameTime;
 		previousFrameTime = currentTime;
 
-		//std::cout << deltaTime * 1000.0 << " ms" << std::endl;
+		std::cout << deltaTime * 1000.0 << " ms" << std::endl;
 
 		glfwPollEvents();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		vertexArray.Bind();
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 
-		glUseProgram(shaderProgram);
+		ImGui::Begin("Metrics");
+		ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0);
+		ImGui::Text("FPS: %.1f", 1.0 / deltaTime);
+		ImGui::End();
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		ImGui::Render();
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+
+		bpe.Render(mvp);
+
 
 		glfwSwapBuffers(window);
 	}
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+	glfwDestroyWindow(window);
+	glfwTerminate();
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
