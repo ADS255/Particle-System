@@ -103,7 +103,7 @@ int main()
 
 	glm::mat4 mvp = projection * view * model;
 
-	BaseParticleEmitter bpe = BaseParticleEmitter(2,10);
+	BaseParticleEmitter bpe = BaseParticleEmitter(1,10);
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -123,8 +123,6 @@ int main()
 		double deltaTime = currentTime - previousFrameTime;
 		previousFrameTime = currentTime;
 
-		std::cout << deltaTime * 1000.0 << " ms" << std::endl;
-
 		glfwPollEvents();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -143,7 +141,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-
+		bpe.Update(deltaTime);
 		bpe.Render(mvp);
 
 
