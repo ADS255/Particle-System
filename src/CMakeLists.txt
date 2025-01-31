@@ -5,15 +5,20 @@ add_library(src STATIC
    "opengl/VertexArrayObject.h"
    "opengl/VertexBufferObject.cpp"
    "opengl/VertexBufferObject.h" 
+ "ParticleEmitters/ParticleEmitter.h" "ParticleEmitters/Particle.h" "ParticleEmitters/BaseParticleEmitter.h" "ParticleEmitters/BaseParticleEmitter.cpp"  "ParticleEmitters/ParticlePropertyModifier.h"  )
+
+target_include_directories(src PUBLIC
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/opengl
+    ${CMAKE_SOURCE_DIR}/src/ParticleEmitters
 )
 
-target_include_directories(src PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-)
 
 target_link_libraries(src PRIVATE
     glad
     glfw
+    glm
+    freetype
 )
 
 add_subdirectory(shaders)

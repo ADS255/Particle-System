@@ -24,6 +24,10 @@ public:
 
     virtual void Render(glm::mat4 mvp) = 0;
 
+    virtual void SpawnParticle(Particle particle, int particleCount) = 0;
+    virtual void RemoveParticle(int particleIndex) = 0;
+    virtual void GetBufferData(const Particle* particles, int particleCount, float* outArray) = 0;
+
     std::vector<ParticlePropertyModifier*> modifiers;
 
 protected:
