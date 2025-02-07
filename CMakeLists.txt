@@ -18,6 +18,7 @@ set(GLFW_DIR "${EXTERNAL_ROOT}/glfw")
 set(GLAD_DIR "${EXTERNAL_ROOT}/glad")
 set(GLM_DIR "${EXTERNAL_ROOT}/glm")
 set(FREETYPE_DIR "${EXTERNAL_ROOT}/freetype")
+set(IMGUI_DIR "${EXTERNAL_ROOT}/imgui")
 
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
@@ -40,6 +41,28 @@ add_library(freetype INTERFACE)
 target_include_directories(freetype INTERFACE ${FREETYPE_DIR}/include)
 target_link_libraries(freetype INTERFACE ${FREETYPE_DIR}/lib/freetype.lib)
 
+# Add ImGui as INTERFACE library
+add_library(imgui INTERFACE)
+
+# Include ImGui headers for the interface
+target_include_directories(imgui INTERFACE
+    ${IMGUI_DIR}
+)
+
+target_sources(imgui INTERFACE
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_impl_glfw.cpp
+    ${IMGUI_DIR}/imgui_impl_opengl3.cpp
+)
+
+target_link_libraries(imgui INTERFACE
+    glad
+    glfw
+)
+
 add_custom_command(TARGET ParticleSystem POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${FREETYPE_DIR}/freetype.dll"  # Path to the DLL
@@ -47,7 +70,7 @@ add_custom_command(TARGET ParticleSystem POST_BUILD
 )
 
 add_subdirectory(src)
-add_subdirectory(external/imgui)
+#add_subdirectory(external/imgui)
 
 target_include_directories(ParticleSystem PUBLIC
     ${CMAKE_SOURCE_DIR}/external/imgui
