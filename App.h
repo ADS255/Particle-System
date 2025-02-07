@@ -20,6 +20,7 @@
 #include "src/opengl/GLUtils.h"
 #include "src/opengl/VertexArrayObject.h"
 #include "src/opengl/VertexBufferObject.h"
+#include "src/ParticleEmitters/Particle.h"
 
 #include "src/ParticleEmitters/BaseParticleEmitter.h"
 

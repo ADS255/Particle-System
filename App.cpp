@@ -37,6 +37,60 @@ void APIENTRY OpenGlDebugCallback(GLenum source, GLenum type, GLuint id, GLenum 
 	std::cout << " Severity: " << sev << "\n" << std::endl;
 }
 
+/*void Editor() {
+	static int particleCount;
+
+	ImGui::Begin("Particle System Editor");
+
+	// Display particle properties for editing
+	ImGui::InputInt("Count", &particleCount);
+
+	// Position input (x, y)
+	ImGui::InputFloat3("Position", &EmitterProperties.position[0]);
+
+	// Color input (RGBA normalized)
+	ImGui::ColorEdit4("Color", EmitterProperties.colour); // Make sure this is a float[4] (RGBA)
+
+	// Velocity input (x, y)
+	ImGui::InputFloat3("Velocity", &EmitterProperties.velocity[0]);
+
+	// Size input
+	ImGui::InputFloat("Size", &EmitterProperties.size);
+
+	// Display current particle values in the editor
+	ImGui::Text("Particle Properties:");
+	ImGui::Text("Position: (%.2f, %.2f)", EmitterProperties.position[0], EmitterProperties.position[1]);
+	ImGui::Text("Color: (%.2f, %.2f, %.2f, %.2f)", EmitterProperties.colour[0], EmitterProperties.colour[1], EmitterProperties.colour[2], EmitterProperties.colour[3]);
+	ImGui::Text("Velocity: (%.2f, %.2f)", EmitterProperties.velocity[0], EmitterProperties.velocity[1]);
+	ImGui::Text("Size: %.2f", EmitterProperties.size);
+
+	// Apply button to update the emitter with the new particle values
+	if (ImGui::Button("Apply")) {
+
+		float colour[] = { 1.0f,1.0f,0.0f,1.0f };
+		glm::vec3 pos = glm::vec3(1.0f, 1.0f, 1.0f);
+		glm::vec3 velocity = glm::vec3(1.0f, 1.0f, 1.0f);
+		float size = 1.0f;
+		float lifetime = 10.0f;
+
+		Particle p = Particle(colour, pos, velocity, size, lifetime);
+		BaseParticleEmitter* newEmitter = new BaseParticleEmitter(p, 10);
+
+		if (bpe) {
+			// Clear old emitter and create a new one with updated particle values
+			delete bpe; // Dereference the pointer-to-pointer to delete the original emitter
+			bpe = nullptr;
+		}
+
+		// Now assign the new emitter
+		bpe = newEmitter;
+
+		// Create a new particle emitter with the updated particle settings
+	}
+
+	ImGui::End();
+}*/
+
 
 int main()
 {
@@ -84,7 +138,7 @@ int main()
 
 	glm::mat4 model = glm::mat4(1.0f);
 
-	glm::vec3 cameraPosition(0.0f, 3.0f, 3.0f);
+	glm::vec3 cameraPosition(0.0f, 30.0f, 30.0f);
 	glm::vec3 targetPosition(0.0f, 0.0f, 0.0f);
 	glm::vec3 up(0.0f, 1.0f, 0.0f);
 
@@ -103,7 +157,15 @@ int main()
 
 	glm::mat4 mvp = projection * view * model;
 
-	BaseParticleEmitter bpe = BaseParticleEmitter(1,10);
+	float colour[] = { 1.0f,1.0f,0.0f,1.0f };
+	glm::vec3 pos = glm::vec3(1.0f, 1.0f, 1.0f);
+	glm::vec3 velocity = glm::vec3(1.0f, 1.0f, 1.0f);
+	float size = 1.0f;
+	float lifetime = 10.0f;
+
+	Particle p = Particle(colour, pos, velocity, size, lifetime);
+	BaseParticleEmitter emitter = BaseParticleEmitter(p, 10);
+
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -131,19 +193,21 @@ int main()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
+
 		ImGui::Begin("Metrics");
 		ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0);
 		ImGui::Text("FPS: %.1f", 1.0 / deltaTime);
 		ImGui::End();
+
+		emitter.Editor();
 
 		ImGui::Render();
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		bpe.Update(deltaTime);
-		bpe.Render(mvp);
-
+		emitter.Update(deltaTime);
+		emitter.Render(mvp);
 
 		glfwSwapBuffers(window);
 	}

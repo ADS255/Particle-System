@@ -7,6 +7,8 @@
 #include <vector>
 #include <random>
 
+#include <imgui.h>
+
 #include "opengl/GLUtils.h"
 #include "opengl/VertexArrayObject.h"
 #include "opengl/VertexBufferObject.h"
@@ -18,7 +20,10 @@ class ParticleEmitter
 {
 public:
 
-    virtual ~ParticleEmitter() {}
+    virtual ~ParticleEmitter() = default;
+
+    virtual void Initialise() = 0;
+    virtual void Destroy() = 0;
 
     virtual void Update(double deltaTime) = 0;
 
@@ -27,6 +32,8 @@ public:
     virtual void SpawnParticle(Particle particle, int particleCount) = 0;
     virtual void RemoveParticle(int particleIndex) = 0;
     virtual void GetBufferData(const Particle* particles, int particleCount, float* outArray) = 0;
+
+    void Editor();
 
     std::vector<ParticlePropertyModifier*> modifiers;
 
@@ -44,8 +51,12 @@ protected:
         0.5f,  0.5f,  0.0f   // Top-right
     };
 
-    unsigned int particleCount;
-    float particleLifetime;
+    unsigned int particleCount = 100;
+    float particleLifetime = 10;
+    float colour[4] = {1.0,1.0,1.0,1.0};
+    float size = 1.0f;
+    glm::vec3 position = glm::vec3();
+    glm::vec3 velocity = glm::vec3();
 
     GLuint shaderProgram;
     GLuint uMVPLoc;

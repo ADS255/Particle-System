@@ -4,8 +4,11 @@
 class BaseParticleEmitter : public ParticleEmitter
 {
 public:
-	BaseParticleEmitter(unsigned int particleCount, float particleLifetime);
+	BaseParticleEmitter(Particle particle,unsigned int particleCount);
 	~BaseParticleEmitter();
+
+	void Initialise() override;
+	void Destroy() override;
 
 	void Update(double deltaTime) override;
 
@@ -13,6 +16,7 @@ public:
 
 	void SpawnParticle(Particle particle, int particleCount) override;
 	void RemoveParticle(int particleIndex) override;
+
 private:
 
 	std::vector<VertexArrayObject> vertexArrays;

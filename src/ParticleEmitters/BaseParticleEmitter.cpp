@@ -2,32 +2,27 @@
 #include "BaseParticleEmitter.h"
 #include "BaseParticleEmitter.h"
 #include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
 
-BaseParticleEmitter::BaseParticleEmitter(unsigned int particleCount, float particleLifetime)
+BaseParticleEmitter::BaseParticleEmitter(Particle particle, unsigned int particleCount)
 {
 	modifiers = std::vector<ParticlePropertyModifier*>();
+}
 
-	float colour[4] = { 1.0f, 1.0f, 0.0f, 1.0f };
-	glm::vec3 position(0.0f,0.0f,0.0f);
-	glm::vec3 velocity(0.0f, 0.0f, 0.0f);
-	float size = 1.0f;
+BaseParticleEmitter::~BaseParticleEmitter()
+{
+	Destroy();
+}
 
+void BaseParticleEmitter::Initialise()
+{
 	vertexArrays = std::vector<VertexArrayObject>();
 	vertexBuffers = std::vector<VertexBufferObject>();
 	particlePropertiesBuffers = std::vector<VertexBufferObject>();
 
+	Particle particle(colour, position, velocity, size, particleLifetime);
+
 	for (size_t i = 0; i < particleCount; ++i) {
-		SpawnParticle(Particle(colour, position, velocity, size, particleLifetime),particleCount);
+		SpawnParticle(particle, 1);
 	}
 
 	unsigned int vertexShader = GLUtils::LoadShader("shaders/baseParticleEmitter.vert", GL_VERTEX_SHADER);
@@ -48,34 +43,55 @@ BaseParticleEmitter::BaseParticleEmitter(unsigned int particleCount, float parti
 	}
 
 	uMVPLoc = glGetUniformLocation(shaderProgram, "uMVP");
-
 }
 
-BaseParticleEmitter::~BaseParticleEmitter()
+void BaseParticleEmitter::Destroy()
 {
+	for (size_t i = 0; i < particles.size(); i++)
+	{
+		vertexArrays[i].Delete();
+		vertexBuffers[i].Delete();
+		particlePropertiesBuffers[i].Delete();
+	}
+
+	particles.clear();
+	vertexArrays.clear();
+	vertexArrays.clear();
+	vertexBuffers.clear();
+	particlePropertiesBuffers.clear();
 }
 
 void BaseParticleEmitter::Update(double deltaTime)
 {
 	std::vector<int> particlesToDelete = std::vector<int>();
+	float* particleData = new float[8];
 
 	for (size_t i = 0; i < particles.size(); ++i) {
 		VertexBufferObject particlePropertiesBuffer = particlePropertiesBuffers[i];
+
 		particles[i].lifetime -= deltaTime;
 
 		if (particles[i].lifetime <= 0)
 		{
 			particlesToDelete.push_back(i);
+			continue;
 		}
 
-		for (size_t i = 0; i < modifiers.size(); i++)
+		particles[i].position.x += particles[i].velocity.x * deltaTime;
+		particles[i].position.y += particles[i].velocity.y * deltaTime;
+		particles[i].position.z += particles[i].velocity.z * deltaTime;
+
+		for (size_t j = 0; j < modifiers.size(); j++)
 		{
-			modifiers[i]->ApplyModifier(particles[i],deltaTime);
+			modifiers[j]->ApplyModifier(particles[i], deltaTime);
 		}
+
+		GetBufferData(&particles[i], 1, particleData);
 		glBindBuffer(GL_ARRAY_BUFFER, particlePropertiesBuffer.ID);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 3, &particles[i].position);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 8, particleData);
 	}
 
+	delete[] particleData;
 }
 
 void BaseParticleEmitter::Render(glm::mat4 mvp)
@@ -117,7 +133,7 @@ void BaseParticleEmitter::Render(glm::mat4 mvp)
 	//glDeleteQueries(1, &timeQueryID);
 }
 
-void BaseParticleEmitter::SpawnParticle(Particle particle,int particleCount)
+void BaseParticleEmitter::SpawnParticle(Particle particle, int particleCount)
 {
 	particles.push_back(Particle(particle));
 
@@ -128,7 +144,7 @@ void BaseParticleEmitter::SpawnParticle(Particle particle,int particleCount)
 	vao.LinkAttribute(vbo, 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
 	float* particleData = new float[particleCount * 8];
-	GetBufferData(&particle,particleCount, particleData);
+	GetBufferData(&particle, particleCount, particleData);
 
 	VertexBufferObject particlePropertiesBuffer = VertexBufferObject(particleData, sizeof(float) * 8);
 	GLsizeiptr stride = sizeof(float) * 8;
