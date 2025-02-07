@@ -21,7 +21,41 @@ void BaseParticleEmitter::Initialise()
 
 	Particle particle(colour, position, velocity, size, particleLifetime);
 
+
 	for (size_t i = 0; i < particleCount; ++i) {
+
+		if (randomisePosition)
+		{
+			particle.position.x = RandomFloat(minPosition.x, maxPosition.x);
+			particle.position.y = RandomFloat(minPosition.y, maxPosition.y);
+			particle.position.z = RandomFloat(minPosition.z, maxPosition.z);
+		}
+
+		if (randomiseVelocity)
+		{
+			particle.velocity.x = RandomFloat(minVelocity.x, maxVelocity.x);
+			particle.velocity.y = RandomFloat(minVelocity.y, maxVelocity.y);
+			particle.velocity.z = RandomFloat(minVelocity.z, maxVelocity.z);
+		}
+
+		if (randomiseSize)
+		{
+			particle.size = RandomFloat(minSize, maxSize);
+		}
+
+		if (randomiseLifetime)
+		{
+			particle.lifetime = RandomFloat(minLifetime, maxLifetime);
+		}
+
+		if (randomiseColour)
+		{
+			particle.colour[0] = RandomFloat(0.0f, 1.0f);
+			particle.colour[1] = RandomFloat(0.0f, 1.0f);
+			particle.colour[2] = RandomFloat(0.0f, 1.0f);
+			particle.colour[3] = RandomFloat(0.0f, 1.0f);
+		}
+
 		SpawnParticle(particle, 1);
 	}
 
