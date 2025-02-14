@@ -9,6 +9,8 @@
 
 #include <imgui.h>
 
+#include <json.hpp>
+
 #include "opengl/GLUtils.h"
 #include "opengl/VertexArrayObject.h"
 #include "opengl/VertexBufferObject.h"
@@ -35,12 +37,14 @@ public:
 
 	void Editor();
 
+	void SaveParticleSystemConfig(std::string path);
+	void LoadParticleSystemConfig(std::string path);
+
 	std::vector<ParticlePropertyModifier*> modifiers;
 
 protected:
 
 	float RandomFloat(float min, float max);
-	int RandomInt(int min, int max);
 
 	float squareVertices[18] = {
 		// First triangle
