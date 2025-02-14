@@ -16,6 +16,8 @@
 #include <ft2build.h>
 #include <freetype/freetype.h>
 
+#include <json.hpp>
+
 
 #include "src/opengl/GLUtils.h"
 #include "src/opengl/VertexArrayObject.h"

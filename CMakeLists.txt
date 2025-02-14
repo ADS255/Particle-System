@@ -19,6 +19,7 @@ set(GLAD_DIR "${EXTERNAL_ROOT}/glad")
 set(GLM_DIR "${EXTERNAL_ROOT}/glm")
 set(FREETYPE_DIR "${EXTERNAL_ROOT}/freetype")
 set(IMGUI_DIR "${EXTERNAL_ROOT}/imgui")
+set(JSON_DIR "${EXTERNAL_ROOT}/json")
 
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
@@ -40,6 +41,9 @@ target_include_directories(glm INTERFACE ${GLM_DIR})
 add_library(freetype INTERFACE)
 target_include_directories(freetype INTERFACE ${FREETYPE_DIR}/include)
 target_link_libraries(freetype INTERFACE ${FREETYPE_DIR}/lib/freetype.lib)
+
+add_library(json INTERFACE)
+target_include_directories(json INTERFACE ${JSON_DIR})
 
 # Add ImGui as INTERFACE library
 add_library(imgui INTERFACE)
@@ -88,6 +92,7 @@ target_link_libraries(ParticleSystem PUBLIC
     glm
     freetype
     imgui
+    json
 
     src
 )
