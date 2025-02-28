@@ -172,7 +172,7 @@ void BaseParticleEmitter::Update(double deltaTime)
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 8, particleData);
 	}
 
-	//RemoveParticles(particlesToDelete);
+	RemoveParticles(particlesToDelete);
 	delete[] particleData;
 }
 
@@ -292,6 +292,8 @@ void BaseParticleEmitter::RemoveParticles(const std::vector<int>& particlesToRem
 			vertexArrays.erase(vertexArrays.begin() + index);
 			vertexBuffers.erase(vertexBuffers.begin() + index);
 			particlePropertiesBuffers.erase(particlePropertiesBuffers.begin() + index);
+
+			particles.erase(particles.begin() + index);
 
 			properties->activeParticleCount--;
 		}
