@@ -12,8 +12,6 @@ BaseParticleEmitter::~BaseParticleEmitter()
 
 void BaseParticleEmitter::Initialise()
 {
-	activeParticleCount = 0;
-
 	vertexArrays = std::vector<VertexArrayObject>();
 	vertexBuffers = std::vector<VertexBufferObject>();
 	particlePropertiesBuffers = std::vector<VertexBufferObject>();
@@ -56,43 +54,47 @@ void BaseParticleEmitter::Destroy()
 
 void BaseParticleEmitter::Update(double deltaTime)
 {
-	timeSinceLastEmission += deltaTime;
-	if (timeSinceLastEmission >= emissionInterval && activeParticleCount < particleCount) {
+	if (!properties)
+	{
+		return;
+	}
+	properties->timeSinceLastEmission += deltaTime;
+	if (properties->timeSinceLastEmission >= properties->emissionInterval && properties->activeParticleCount < properties->particleCount) {
 
 		int particlesToEmit = ParticlesToEmitCount();
 
-		timeSinceLastEmission = 0;
+		properties->timeSinceLastEmission = 0;
 
 
 		for (size_t i = 0; i < particlesToEmit; i++)
 		{
-			Particle particle(colour, position, velocity, size, particleLifetime);
+			Particle particle(properties->colour, properties->position, properties->velocity, properties->size, properties->particleLifetime);
 
-			if (randomisePosition)
+			if (properties->randomisePosition)
 			{
-				particle.position.x = RandomFloat(minPosition.x, maxPosition.x);
-				particle.position.y = RandomFloat(minPosition.y, maxPosition.y);
-				particle.position.z = RandomFloat(minPosition.z, maxPosition.z);
+				particle.position.x = RandomFloat(properties->minPosition.x, properties->maxPosition.x);
+				particle.position.y = RandomFloat(properties->minPosition.y, properties->maxPosition.y);
+				particle.position.z = RandomFloat(properties->minPosition.z, properties->maxPosition.z);
 			}
 
-			if (randomiseVelocity)
+			if (properties->randomiseVelocity)
 			{
-				particle.velocity.x = RandomFloat(minVelocity.x, maxVelocity.x);
-				particle.velocity.y = RandomFloat(minVelocity.y, maxVelocity.y);
-				particle.velocity.z = RandomFloat(minVelocity.z, maxVelocity.z);
+				particle.velocity.x = RandomFloat(properties->minVelocity.x, properties->maxVelocity.x);
+				particle.velocity.y = RandomFloat(properties->minVelocity.y, properties->maxVelocity.y);
+				particle.velocity.z = RandomFloat(properties->minVelocity.z, properties->maxVelocity.z);
 			}
 
-			if (randomiseSize)
+			if (properties->randomiseSize)
 			{
-				particle.size = RandomFloat(minSize, maxSize);
+				particle.size = RandomFloat(properties->minSize, properties->maxSize);
 			}
 
-			if (randomiseLifetime)
+			if (properties->randomiseLifetime)
 			{
-				particle.lifetime = RandomFloat(minLifetime, maxLifetime);
+				particle.lifetime = RandomFloat(properties->minLifetime, properties->maxLifetime);
 			}
 
-			if (randomiseColour)
+			if (properties->randomiseColour)
 			{
 				particle.colour[0] = RandomFloat(0.0f, 1.0f);
 				particle.colour[1] = RandomFloat(0.0f, 1.0f);
@@ -101,7 +103,7 @@ void BaseParticleEmitter::Update(double deltaTime)
 			}
 
 			SpawnParticle(particle, 1);
-			activeParticleCount++;
+			properties->activeParticleCount++;
 		}
 
 	}
@@ -291,7 +293,7 @@ void BaseParticleEmitter::RemoveParticles(const std::vector<int>& particlesToRem
 			vertexBuffers.erase(vertexBuffers.begin() + index);
 			particlePropertiesBuffers.erase(particlePropertiesBuffers.begin() + index);
 
-			activeParticleCount--;
+			properties->activeParticleCount--;
 		}
 		else {
 			// Handle invalid index, could log or assert here
