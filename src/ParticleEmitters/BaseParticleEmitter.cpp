@@ -1,7 +1,4 @@
 #include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
 
 BaseParticleEmitter::BaseParticleEmitter(Particle particle, unsigned int particleCount)
 {
@@ -15,49 +12,11 @@ BaseParticleEmitter::~BaseParticleEmitter()
 
 void BaseParticleEmitter::Initialise()
 {
+	activeParticleCount = 0;
+
 	vertexArrays = std::vector<VertexArrayObject>();
 	vertexBuffers = std::vector<VertexBufferObject>();
 	particlePropertiesBuffers = std::vector<VertexBufferObject>();
-
-	Particle particle(colour, position, velocity, size, particleLifetime);
-
-
-	for (size_t i = 0; i < particleCount; ++i) {
-
-		if (randomisePosition)
-		{
-			particle.position.x = RandomFloat(minPosition.x, maxPosition.x);
-			particle.position.y = RandomFloat(minPosition.y, maxPosition.y);
-			particle.position.z = RandomFloat(minPosition.z, maxPosition.z);
-		}
-
-		if (randomiseVelocity)
-		{
-			particle.velocity.x = RandomFloat(minVelocity.x, maxVelocity.x);
-			particle.velocity.y = RandomFloat(minVelocity.y, maxVelocity.y);
-			particle.velocity.z = RandomFloat(minVelocity.z, maxVelocity.z);
-		}
-
-		if (randomiseSize)
-		{
-			particle.size = RandomFloat(minSize, maxSize);
-		}
-
-		if (randomiseLifetime)
-		{
-			particle.lifetime = RandomFloat(minLifetime, maxLifetime);
-		}
-
-		if (randomiseColour)
-		{
-			particle.colour[0] = RandomFloat(0.0f, 1.0f);
-			particle.colour[1] = RandomFloat(0.0f, 1.0f);
-			particle.colour[2] = RandomFloat(0.0f, 1.0f);
-			particle.colour[3] = RandomFloat(0.0f, 1.0f);
-		}
-
-		SpawnParticle(particle, 1);
-	}
 
 	unsigned int vertexShader = GLUtils::LoadShader("shaders/baseParticleEmitter.vert", GL_VERTEX_SHADER);
 	unsigned int fragmentShader = GLUtils::LoadShader("shaders/baseParticleEmitter.frag", GL_FRAGMENT_SHADER);
@@ -97,6 +56,57 @@ void BaseParticleEmitter::Destroy()
 
 void BaseParticleEmitter::Update(double deltaTime)
 {
+	timeSinceLastEmission += deltaTime;
+	if (timeSinceLastEmission >= emissionInterval && activeParticleCount < particleCount) {
+
+		int particlesToEmit = ParticlesToEmitCount();
+
+		timeSinceLastEmission = 0;
+
+
+		for (size_t i = 0; i < particlesToEmit; i++)
+		{
+			Particle particle(colour, position, velocity, size, particleLifetime);
+
+			if (randomisePosition)
+			{
+				particle.position.x = RandomFloat(minPosition.x, maxPosition.x);
+				particle.position.y = RandomFloat(minPosition.y, maxPosition.y);
+				particle.position.z = RandomFloat(minPosition.z, maxPosition.z);
+			}
+
+			if (randomiseVelocity)
+			{
+				particle.velocity.x = RandomFloat(minVelocity.x, maxVelocity.x);
+				particle.velocity.y = RandomFloat(minVelocity.y, maxVelocity.y);
+				particle.velocity.z = RandomFloat(minVelocity.z, maxVelocity.z);
+			}
+
+			if (randomiseSize)
+			{
+				particle.size = RandomFloat(minSize, maxSize);
+			}
+
+			if (randomiseLifetime)
+			{
+				particle.lifetime = RandomFloat(minLifetime, maxLifetime);
+			}
+
+			if (randomiseColour)
+			{
+				particle.colour[0] = RandomFloat(0.0f, 1.0f);
+				particle.colour[1] = RandomFloat(0.0f, 1.0f);
+				particle.colour[2] = RandomFloat(0.0f, 1.0f);
+				particle.colour[3] = RandomFloat(0.0f, 1.0f);
+			}
+
+			SpawnParticle(particle, 1);
+			activeParticleCount++;
+		}
+
+	}
+
+
 	std::vector<int> particlesToDelete = std::vector<int>();
 	float* particleData = new float[8];
 
@@ -114,6 +124,41 @@ void BaseParticleEmitter::Update(double deltaTime)
 		particles[i].position.x += particles[i].velocity.x * deltaTime;
 		particles[i].position.y += particles[i].velocity.y * deltaTime;
 		particles[i].position.z += particles[i].velocity.z * deltaTime;
+
+
+		glm::vec3 sphereCenter = glm::vec3(0.0f, 0.0f, 0.0f); // Center of sphere
+		float sphereRadius = 30.0f; // Radius of sphere
+
+		// Compute vector from center to particle
+		glm::vec3 vecToParticle = particles[i].position - sphereCenter;
+
+		// Compute squared distance (avoiding expensive sqrt operation unless necessary)
+		float distSq = glm::dot(vecToParticle, vecToParticle);
+		float radiusSq = sphereRadius * sphereRadius;
+
+		// If outside the sphere, reflect the velocity
+		if (distSq > radiusSq) {
+			float dist = sqrt(distSq); // Compute actual distance
+			glm::vec3 normal = vecToParticle / dist; // Normalize to get collision normal
+
+			// Reflect velocity using the reflection formula
+			particles[i].velocity -= 2.0f * glm::dot(particles[i].velocity, normal) * normal;
+
+			// Move particle back to the surface to prevent sticking
+			//particles[i].position = sphereCenter + normal * sphereRadius;
+		}
+
+		float startColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+		float endColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+
+		float factor = particles[i].lifetime / 10;
+		if (factor < 0.0f) factor = 0.0f;
+		if (factor > 1.0f) factor = 1.0f;
+
+		// Interpolate color
+		for (int j = 0; j < 4; j++) {
+			particles[i].colour[j] = startColor[j] + (endColor[j] - startColor[j]) * (1.0f - factor);
+		}
 
 		for (size_t j = 0; j < modifiers.size(); j++)
 		{
@@ -230,6 +275,8 @@ void BaseParticleEmitter::SpawnParticle(Particle particle, int particleCount)
 
 void BaseParticleEmitter::RemoveParticle(int particleIndex)
 {
+	activeParticleCount--;
+
 	vertexArrays[particleIndex].Delete();
 	vertexBuffers[particleIndex].Delete();
 	particlePropertiesBuffers[particleIndex].Delete();

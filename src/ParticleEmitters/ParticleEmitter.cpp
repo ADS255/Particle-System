@@ -3,12 +3,26 @@
 #include "ParticleEmitter.h"
 #include "ParticleEmitter.h"
 #include "ParticleEmitter.h"
+#include "ParticleEmitter.h"
 #pragma once
 #include "ParticleEmitter.h"
+
+unsigned int ParticleEmitter::ParticlesToEmitCount()
+{
+    if (particlesPerSecond == 0)
+    {
+        return 0;
+    }
+
+    emissionInterval = 1.0f / particlesPerSecond;
+    return static_cast<unsigned int>(timeSinceLastEmission / emissionInterval);
+}
 
 void ParticleEmitter::Editor() {
 
     ImGui::Begin("Particle System Editor");
+
+    ImGui::InputInt("Particles To Emit Per Second", (int*)&particlesPerSecond);
 
     ImGui::InputInt("Particle Count", (int*)&particleCount, 1, 10000);
 

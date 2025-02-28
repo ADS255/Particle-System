@@ -185,6 +185,19 @@ int main()
 		double deltaTime = currentTime - previousFrameTime;
 		previousFrameTime = currentTime;
 
+		/*float radius = 30.0f; // Distance from origin
+		float angle = glfwGetTime() *0.25f; // Use time to animate
+
+		cameraPosition.x = radius * cos(angle);
+		cameraPosition.z = radius * sin(angle);
+		cameraPosition.y = 30.0f; // Keep Y constant for a horizontal orbit
+
+		// Recalculate view matrix
+		view = glm::lookAt(cameraPosition, targetPosition, up);
+
+		// Recalculate MVP
+		mvp = projection * view * model;*/
+
 		glfwPollEvents();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -202,7 +215,7 @@ int main()
 		emitter.Editor();
 
 		ImGui::Render();
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

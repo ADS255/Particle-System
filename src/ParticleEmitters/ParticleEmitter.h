@@ -35,6 +35,8 @@ public:
 	virtual void RemoveParticle(int particleIndex) = 0;
 	virtual void GetBufferData(const Particle* particles, int particleCount, float* outArray) = 0;
 
+	unsigned int ParticlesToEmitCount();
+
 	void Editor();
 
 	void SaveParticleSystemConfig(std::string path);
@@ -58,7 +60,13 @@ protected:
 		0.5f,  0.5f,  0.0f   // Top-right
 	};
 
+	float timeSinceLastEmission = 0;
+	float emissionInterval = 0;
+	unsigned int particlesPerSecond = 10;
+
 	unsigned int particleCount = 100;
+	unsigned int activeParticleCount = 0;
+
 	float particleLifetime = 10;
 	float colour[4] = { 1.0,1.0,1.0,1.0 };
 	float size = 1.0f;

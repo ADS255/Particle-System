@@ -5,7 +5,7 @@ add_library(src STATIC
    "opengl/VertexArrayObject.h"
    "opengl/VertexBufferObject.cpp"
    "opengl/VertexBufferObject.h" 
- "ParticleEmitters/ParticleEmitter.h" "ParticleEmitters/ParticleEmitter.cpp" "ParticleEmitters/Particle.h" "ParticleEmitters/BaseParticleEmitter.h" "ParticleEmitters/BaseParticleEmitter.cpp"  "ParticleEmitters/ParticlePropertyModifier.h"   "ParticleEmitters/ColourModifier.h")
+ "ParticleEmitters/ParticleEmitter.h" "ParticleEmitters/ParticleEmitter.cpp" "ParticleEmitters/Particle.h" "ParticleEmitters/BaseParticleEmitter.h" "ParticleEmitters/BaseParticleEmitter.cpp"  "ParticleEmitters/ParticlePropertyModifier.h"   "ParticleEmitters/ColourModifier.h" "ParticleEmitters/RandomVelocityModifier.h" "ParticleEmitters/RandomVelocityModifier.cpp")
 
 target_include_directories(src PUBLIC
     ${CMAKE_SOURCE_DIR}/src
