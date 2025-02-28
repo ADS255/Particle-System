@@ -1,4 +1,6 @@
 ﻿cmake_minimum_required(VERSION 3.8)
+set(CMAKE_CXX_STANDARD 20)
+
 
 # Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
@@ -20,12 +22,6 @@ set(GLM_DIR "${EXTERNAL_ROOT}/glm")
 set(FREETYPE_DIR "${EXTERNAL_ROOT}/freetype")
 set(IMGUI_DIR "${EXTERNAL_ROOT}/imgui")
 set(JSON_DIR "${EXTERNAL_ROOT}/json")
-
-
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET ParticleSystem PROPERTY CXX_STANDARD 20)
-endif()
-
 
 add_library(glfw INTERFACE)
 target_include_directories(glfw INTERFACE ${GLFW_DIR})
