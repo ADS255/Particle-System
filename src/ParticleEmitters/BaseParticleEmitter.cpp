@@ -170,6 +170,7 @@ void BaseParticleEmitter::Update(double deltaTime)
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 8, particleData);
 	}
 
+	//RemoveParticles(particlesToDelete);
 	delete[] particleData;
 }
 
@@ -273,18 +274,32 @@ void BaseParticleEmitter::SpawnParticle(Particle particle, int particleCount)
 	delete[] particleData;
 }
 
-void BaseParticleEmitter::RemoveParticle(int particleIndex)
+void BaseParticleEmitter::RemoveParticles(const std::vector<int>& particlesToRemove)
 {
-	activeParticleCount--;
+	// Copy and sort indices in descending order to avoid shifting issues when erasing
+	std::vector<int> sortedIndices = particlesToRemove;
+	std::sort(sortedIndices.rbegin(), sortedIndices.rend());
 
-	vertexArrays[particleIndex].Delete();
-	vertexBuffers[particleIndex].Delete();
-	particlePropertiesBuffers[particleIndex].Delete();
+	for (int index : sortedIndices) {
+		if (index >= 0 && index < vertexArrays.size()) {  // Ensure the index is valid
+			// Delete particle resources
+			vertexArrays[index].Delete();
+			vertexBuffers[index].Delete();
+			particlePropertiesBuffers[index].Delete();
 
-	vertexArrays.erase(vertexArrays.begin() + particleIndex);
-	vertexBuffers.erase(vertexBuffers.begin() + particleIndex);
-	particlePropertiesBuffers.erase(particlePropertiesBuffers.begin() + particleIndex);
+			vertexArrays.erase(vertexArrays.begin() + index);
+			vertexBuffers.erase(vertexBuffers.begin() + index);
+			particlePropertiesBuffers.erase(particlePropertiesBuffers.begin() + index);
+
+			activeParticleCount--;
+		}
+		else {
+			// Handle invalid index, could log or assert here
+			std::cerr << "Warning: Attempt to remove particle with invalid index: " << index << std::endl;
+		}
+	}
 }
+
 
 void BaseParticleEmitter::GetBufferData(const Particle* particles, int particleCount, float* outArray)
 {

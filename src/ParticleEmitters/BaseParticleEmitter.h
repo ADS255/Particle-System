@@ -15,7 +15,8 @@ public:
 	void Render(glm::mat4 mvp) override;
 
 	void SpawnParticle(Particle particle, int particleCount) override;
-	void RemoveParticle(int particleIndex) override;
+
+	void RemoveParticles(const std::vector<int>& particlesToRemove) override;
 
 private:
 

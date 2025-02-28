@@ -32,7 +32,7 @@ public:
 	virtual void Render(glm::mat4 mvp) = 0;
 
 	virtual void SpawnParticle(Particle particle, int particleCount) = 0;
-	virtual void RemoveParticle(int particleIndex) = 0;
+	virtual void RemoveParticles(const std::vector<int>& particlesToRemove) = 0;
 	virtual void GetBufferData(const Particle* particles, int particleCount, float* outArray) = 0;
 
 	unsigned int ParticlesToEmitCount();
