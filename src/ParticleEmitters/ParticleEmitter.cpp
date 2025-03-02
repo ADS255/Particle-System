@@ -15,7 +15,14 @@ unsigned int ParticleEmitter::ParticlesToEmitCount()
     }
 
     properties->emissionInterval = 1.0f / properties->particlesPerSecond;
-    return static_cast<unsigned int>(properties->timeSinceLastEmission / properties->emissionInterval);
+    int particleSpawnCount = static_cast<unsigned int>(properties->timeSinceLastEmission / properties->emissionInterval);
+
+    if (properties->activeParticleCount + particleSpawnCount > properties->particleCount)
+    {
+        particleSpawnCount = properties->particleCount - properties->activeParticleCount;
+    }
+
+    return particleSpawnCount;
 }
 
 void ParticleEmitter::Editor() {
