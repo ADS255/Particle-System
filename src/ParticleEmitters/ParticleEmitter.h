@@ -32,7 +32,7 @@ public:
 
 	virtual void Update(double deltaTime) = 0;
 
-	virtual void Render(glm::mat4 mvp) = 0;
+	virtual void Render(glm::mat4 view,glm::mat4 proj) = 0;
 
 	virtual void SpawnParticle(Particle particle, int particleCount) = 0;
 	virtual void RemoveParticles(const std::vector<int>& particlesToRemove) = 0;
@@ -41,6 +41,7 @@ public:
 	unsigned int ParticlesToEmitCount();
 
 	void Editor();
+	virtual void Metrics() = 0;
 
 	void SaveParticleSystemConfig(std::string path);
 	void LoadParticleSystemConfig(std::string path);
@@ -66,6 +67,12 @@ protected:
 	std::optional<EmitterProperties> properties;
 	EmitterProperties editorProperties;
 
+	double updateTime;
+	double renderTime;
+
 	GLuint shaderProgram;
 	GLuint uMVPLoc;
+
+	GLuint uView;
+	GLuint uProjection;
 };

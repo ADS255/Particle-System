@@ -1,4 +1,5 @@
 #include "BaseParticleEmitter.h"
+#include "BaseParticleEmitter.h"
 
 BaseParticleEmitter::BaseParticleEmitter(Particle particle, unsigned int particleCount)
 {
@@ -33,7 +34,11 @@ void BaseParticleEmitter::Initialise()
 		std::cerr << "Shader program linking error:\n" << infoLog << std::endl;
 	}
 
-	uMVPLoc = glGetUniformLocation(shaderProgram, "uMVP");
+	//uMVPLoc = glGetUniformLocation(shaderProgram, "uMVP");
+
+	uView = glGetUniformLocation(shaderProgram, "uView");
+	uProjection = glGetUniformLocation(shaderProgram, "uProj");
+
 }
 
 void BaseParticleEmitter::Destroy()
@@ -54,6 +59,9 @@ void BaseParticleEmitter::Destroy()
 
 void BaseParticleEmitter::Update(double deltaTime)
 {
+	using Clock = std::chrono::high_resolution_clock;
+	auto frame_start = Clock::now();
+
 	if (!properties)
 	{
 		return;
@@ -174,10 +182,15 @@ void BaseParticleEmitter::Update(double deltaTime)
 
 	RemoveParticles(particlesToDelete);
 	delete[] particleData;
+
+	auto frame_end = Clock::now();
+	updateTime = std::chrono::duration<double, std::milli>(frame_end - frame_start).count();
 }
 
-void BaseParticleEmitter::Render(glm::mat4 mvp)
+void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 {
+	using Clock = std::chrono::high_resolution_clock;
+	auto frame_start = Clock::now();
 	//GLuint timeQueryID;
 	//glGenQueries(1, &timeQueryID);       // Create query for time elapsed
 
@@ -197,11 +210,13 @@ void BaseParticleEmitter::Render(glm::mat4 mvp)
 		vao.Bind();
 
 		glUseProgram(shaderProgram);
-		glUniformMatrix4fv(uMVPLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+		glUniformMatrix4fv(uView, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(uProjection, 1, GL_FALSE, glm::value_ptr(proj));
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	// End the queries
+
 	//glEndQuery(GL_TIME_ELAPSED);
 
 	// Retrieve query results
@@ -213,6 +228,9 @@ void BaseParticleEmitter::Render(glm::mat4 mvp)
 
 	// Cleanup
 	//glDeleteQueries(1, &timeQueryID);
+
+	auto frame_end = Clock::now();
+	renderTime = std::chrono::duration<double, std::milli>(frame_end - frame_start).count();
 }
 
 void BaseParticleEmitter::SpawnParticle(Particle particle, int particleCount)
@@ -302,6 +320,17 @@ void BaseParticleEmitter::RemoveParticles(const std::vector<int>& particlesToRem
 			std::cerr << "Warning: Attempt to remove particle with invalid index: " << index << std::endl;
 		}
 	}
+}
+
+void BaseParticleEmitter::Metrics()
+{
+	ImGui::Begin("Particle System Metrics");
+
+	ImGui::LabelText("Active Particles", "%d", static_cast<int>(particles.size()));
+	ImGui::LabelText("Update Time", "%.3f ms", updateTime);
+	ImGui::LabelText("Render Time", "%.3f ms", renderTime);
+
+	ImGui::End();
 }
 
 

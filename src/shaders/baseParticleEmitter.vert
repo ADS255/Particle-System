@@ -1,11 +1,12 @@
 #version 460 core
 
-layout(location = 0) in vec3 inPosition;         // Original position of the vertex
-layout(location = 1) in vec3 inPositionOffset;    // Offset to be applied to the position
-layout(location = 2) in vec4 inColor;            // Input color
-layout(location = 3) in float inSize;            // Size factor
+layout(location = 0) in vec3 inPosition;         // Quad vertex position (local)
+layout(location = 1) in vec3 inPositionOffset;   // Particle world position (center)
+layout(location = 2) in vec4 inColor;            // Particle color
+layout(location = 3) in float inSize;            // Particle size
 
-uniform mat4 uMVP;  // Model-View-Projection matrix
+uniform mat4 uView;  // View matrix
+uniform mat4 uProj;  // Projection matrix
 
 out vec4 fragColor;
 
@@ -13,9 +14,16 @@ void main()
 {
     fragColor = inColor;
 
-    vec4 positionWithOffset = vec4(inPositionOffset, 1.0);
+    // Extract camera right and up vectors from the View Matrix
+    vec3 right = vec3(uView[0][0], uView[1][0], uView[2][0]); // First column
+    vec3 up    = vec3(uView[0][1], uView[1][1], uView[2][1]); // Second column
 
-    vec4 scaledPosition = vec4(inPosition * inSize, 1.0); // Scales x, y, z components
+    // Scale by particle size
+    vec3 billboardPos = (right * inPosition.x + up * inPosition.y) * inSize;
 
-    gl_Position = uMVP * (scaledPosition + positionWithOffset);
+    // Final world position of vertex
+    vec4 worldPos = vec4(inPositionOffset + billboardPos, 1.0);
+
+    // Apply projection
+    gl_Position = uProj * uView * worldPos;
 }

@@ -12,11 +12,14 @@ public:
 
 	void Update(double deltaTime) override;
 
-	void Render(glm::mat4 mvp) override;
+	void Render(glm::mat4 view, glm::mat4 proj) override;
 
 	void SpawnParticle(Particle particle, int particleCount) override;
 
 	void RemoveParticles(const std::vector<int>& particlesToRemove) override;
+
+
+	void Metrics() override;
 
 private:
 
