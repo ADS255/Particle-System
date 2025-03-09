@@ -64,21 +64,6 @@ protected:
 	virtual void ConstantModeUI() = 0;
 	virtual void RandBetweenTwoConstantsUI() = 0;
 
-	/*
-	virtual void ConstantModeUI() {
-		ImGui::LabelText(("##ConstantValue_" + modifierName).c_str(), ("Value " + modifierName).c_str());
-		ImGui::InputFloat3(("##ConstantInput_" + modifierName).c_str(), &constantValue[0]);
-	}
-
-	virtual void RandBetweenTwoConstantsUI() {
-		ImGui::LabelText(("##MinValue_" + modifierName).c_str(), ("Min " + modifierName).c_str());
-		ImGui::InputFloat3(("##MinInput_" + modifierName).c_str(), &minValue[0]);
-
-		ImGui::LabelText(("##MaxValue_" + modifierName).c_str(), ("Max " + modifierName).c_str());
-		ImGui::InputFloat3(("##MaxInput_" + modifierName).c_str(), &maxValue[0]);
-	}
-	*/
-
 	T GetValue() const
 	{
 		switch (mode)
@@ -96,12 +81,13 @@ protected:
 
 	float RandomBetween(float min, float max) const
 	{
+		if (min > max) std::swap(min, max);
 		std::random_device rd;
 		std::mt19937 gen(rd());
 		std::uniform_real_distribution<float> dist(min, max);
-
 		return dist(gen);
 	}
+
 
 	glm::vec3 RandomBetween(const glm::vec3& min, const glm::vec3& max) const
 	{
