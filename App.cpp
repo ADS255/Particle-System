@@ -155,16 +155,16 @@ int main()
 
 	glm::vec3 right = glm::normalize(glm::cross(up, cameraDirection));
 
-	glm::mat4 mvp = projection * view * model;
+	//glm::mat4 mvp = projection * view * model;
 
-	float colour[] = { 1.0f,1.0f,0.0f,1.0f };
+	glm::vec4 colour = glm::vec4 (1.0f,1.0f,0.0f,1.0f);
 	glm::vec3 pos = glm::vec3(1.0f, 1.0f, 1.0f);
 	glm::vec3 velocity = glm::vec3(1.0f, 1.0f, 1.0f);
 	float size = 1.0f;
 	float lifetime = 10.0f;
 
 	Particle p = Particle(colour, pos, velocity, size, lifetime);
-	BaseParticleEmitter emitter = BaseParticleEmitter(p, 10);
+	BaseParticleEmitter emitter = BaseParticleEmitter();
 
 
 	IMGUI_CHECKVERSION();
@@ -185,7 +185,8 @@ int main()
 		double deltaTime = currentTime - previousFrameTime;
 		previousFrameTime = currentTime;
 
-		/*float radius = 30.0f; // Distance from origin
+		/*
+		float radius = 30.0f; // Distance from origin
 		float angle = glfwGetTime() *0.25f; // Use time to animate
 
 		cameraPosition.x = radius * cos(angle);
@@ -213,6 +214,7 @@ int main()
 		ImGui::End();
 
 		emitter.Editor();
+		emitter.Metrics();
 
 		ImGui::Render();
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -220,7 +222,7 @@ int main()
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		emitter.Update(deltaTime);
-		emitter.Render(mvp);
+		emitter.Render(view,projection);
 
 		glfwSwapBuffers(window);
 	}

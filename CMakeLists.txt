@@ -22,6 +22,7 @@ set(GLM_DIR "${EXTERNAL_ROOT}/glm")
 set(FREETYPE_DIR "${EXTERNAL_ROOT}/freetype")
 set(IMGUI_DIR "${EXTERNAL_ROOT}/imgui")
 set(JSON_DIR "${EXTERNAL_ROOT}/json")
+set(STB_DIR "${EXTERNAL_ROOT}/stb")
 
 add_library(glfw INTERFACE)
 target_include_directories(glfw INTERFACE ${GLFW_DIR})
@@ -58,6 +59,10 @@ target_sources(imgui INTERFACE
     ${IMGUI_DIR}/imgui_impl_opengl3.cpp
 )
 
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE ${STB_DIR})
+target_sources(stb INTERFACE ${STB_DIR}/stb_image.cpp)
+
 target_link_libraries(imgui INTERFACE
     glad
     glfw
@@ -89,6 +94,7 @@ target_link_libraries(ParticleSystem PUBLIC
     freetype
     imgui
     json
+    stb
 
     src
 )

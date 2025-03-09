@@ -4,7 +4,7 @@
 class BaseParticleEmitter : public ParticleEmitter
 {
 public:
-	BaseParticleEmitter(Particle particle,unsigned int particleCount);
+	BaseParticleEmitter();
 	~BaseParticleEmitter();
 
 	void Initialise() override;

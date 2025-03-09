@@ -18,12 +18,19 @@
 #include "opengl/VertexBufferObject.h"
 
 #include "Particle.h"
-#include "ParticlePropertyModifier.h"
 #include "EmitterProperties.h"
+
+#include "IParticlePropertyModifier.h"
+#include "VelocityModifier.h";
+#include "ColourModifier.h"
+#include "PositionModifier.h"
+#include "LifetimeModifier.h"
 
 class ParticleEmitter
 {
 public:
+
+	ParticleEmitter();
 
 	virtual ~ParticleEmitter() = default;
 
@@ -46,7 +53,7 @@ public:
 	void SaveParticleSystemConfig(std::string path);
 	void LoadParticleSystemConfig(std::string path);
 
-	std::vector<ParticlePropertyModifier*> modifiers;
+	std::vector<IParticlePropertyModifier*> modifiers;
 
 protected:
 

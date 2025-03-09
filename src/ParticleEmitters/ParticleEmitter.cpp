@@ -1,11 +1,14 @@
 #include "ParticleEmitter.h"
-#include "ParticleEmitter.h"
-#include "ParticleEmitter.h"
-#include "ParticleEmitter.h"
-#include "ParticleEmitter.h"
-#include "ParticleEmitter.h"
-#pragma once
-#include "ParticleEmitter.h"
+
+ParticleEmitter::ParticleEmitter() {
+
+    modifiers = std::vector<IParticlePropertyModifier*>();
+
+    modifiers.push_back(new LifetimeModifier());
+    modifiers.push_back(new PositionModifier());
+    modifiers.push_back(new VelocityModifier());
+    modifiers.push_back(new ColourModifier());
+}
 
 unsigned int ParticleEmitter::ParticlesToEmitCount()
 {
@@ -31,50 +34,12 @@ void ParticleEmitter::Editor() {
 
     ImGui::InputInt("Particles To Emit Per Second", (int*)&editorProperties.particlesPerSecond);
 
-    ImGui::InputInt("Particle Count", (int*)&editorProperties.particleCount, 1, 10000);
+    ImGui::InputInt("Particle Count", (int*)&editorProperties.particleCount);
 
-    // Particle lifetime
-    ImGui::InputFloat("Lifetime", &editorProperties.particleLifetime, 0.1f, 10.0f);
-    ImGui::Checkbox("Randomize Lifetime", &editorProperties.randomiseLifetime);
-    if (editorProperties.randomiseLifetime) {
-        ImGui::InputFloat("Min Lifetime", &editorProperties.minLifetime);
-        ImGui::InputFloat("Max Lifetime", &editorProperties.maxLifetime);
-    }
+    for (size_t i = 0; i < modifiers.size(); ++i) {
+        IParticlePropertyModifier* modifier = modifiers[i];
 
-    // Particle color
-    ImGui::ColorEdit4("Colour", editorProperties.colour);
-    ImGui::Checkbox("Colour Over Lifetime", &editorProperties.randomiseColour);
-
-    // Particle size
-    ImGui::InputFloat("Size", &editorProperties.size, 0.1f, 10.0f);
-    ImGui::Checkbox("Randomize Size", &editorProperties.randomiseSize);
-    if (editorProperties.randomiseSize) {
-        ImGui::InputFloat("Min Size", &editorProperties.minSize);
-        ImGui::InputFloat("Max Size", &editorProperties.maxSize);
-    }
-
-    // Particle position
-    ImGui::InputFloat3("Position", &editorProperties.position[0]);
-    ImGui::Checkbox("Randomize Position", &editorProperties.randomisePosition);
-    if (editorProperties.randomisePosition) {
-        ImGui::InputFloat("Min Position X", &editorProperties.minPosition[0]);
-        ImGui::InputFloat("Max Position X", &editorProperties.maxPosition[0]);
-        ImGui::InputFloat("Min Position Y", &editorProperties.minPosition[1]);
-        ImGui::InputFloat("Max Position Y", &editorProperties.maxPosition[1]);
-        ImGui::InputFloat("Min Position Z", &editorProperties.minPosition[2]);
-        ImGui::InputFloat("Max Position Z", &editorProperties.maxPosition[2]);
-    }
-
-    // Particle velocity
-    ImGui::InputFloat3("Velocity", &editorProperties.velocity[0]);
-    ImGui::Checkbox("Randomize Velocity", &editorProperties.randomiseVelocity);
-    if (editorProperties.randomiseVelocity) {
-        ImGui::InputFloat("Min Velocity X", &editorProperties.minVelocity[0]);
-        ImGui::InputFloat("Max Velocity X", &editorProperties.maxVelocity[0]);
-        ImGui::InputFloat("Min Velocity Y", &editorProperties.minVelocity[1]);
-        ImGui::InputFloat("Max Velocity Y", &editorProperties.maxVelocity[1]);
-        ImGui::InputFloat("Min Velocity Z", &editorProperties.minVelocity[2]);
-        ImGui::InputFloat("Max Velocity Z", &editorProperties.maxVelocity[2]);
+        modifier->Editor();
     }
 
 	if (ImGui::Button("Apply")) {

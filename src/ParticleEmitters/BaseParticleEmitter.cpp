@@ -1,10 +1,7 @@
 #include "BaseParticleEmitter.h"
-#include "BaseParticleEmitter.h"
+#include "stb_image.h"
 
-BaseParticleEmitter::BaseParticleEmitter(Particle particle, unsigned int particleCount)
-{
-	modifiers = std::vector<ParticlePropertyModifier*>();
-}
+BaseParticleEmitter::BaseParticleEmitter(){}
 
 BaseParticleEmitter::~BaseParticleEmitter()
 {
@@ -34,11 +31,8 @@ void BaseParticleEmitter::Initialise()
 		std::cerr << "Shader program linking error:\n" << infoLog << std::endl;
 	}
 
-	//uMVPLoc = glGetUniformLocation(shaderProgram, "uMVP");
-
 	uView = glGetUniformLocation(shaderProgram, "uView");
 	uProjection = glGetUniformLocation(shaderProgram, "uProj");
-
 }
 
 void BaseParticleEmitter::Destroy()
@@ -73,49 +67,19 @@ void BaseParticleEmitter::Update(double deltaTime)
 
 		properties->timeSinceLastEmission = 0;
 
-
 		for (size_t i = 0; i < particlesToEmit; i++)
 		{
 			Particle particle(properties->colour, properties->position, properties->velocity, properties->size, properties->particleLifetime);
 
-			if (properties->randomisePosition)
+			for (size_t j = 0; j < modifiers.size(); j++)
 			{
-				particle.position.x = RandomFloat(properties->minPosition.x, properties->maxPosition.x);
-				particle.position.y = RandomFloat(properties->minPosition.y, properties->maxPosition.y);
-				particle.position.z = RandomFloat(properties->minPosition.z, properties->maxPosition.z);
-			}
-
-			if (properties->randomiseVelocity)
-			{
-				particle.velocity.x = RandomFloat(properties->minVelocity.x, properties->maxVelocity.x);
-				particle.velocity.y = RandomFloat(properties->minVelocity.y, properties->maxVelocity.y);
-				particle.velocity.z = RandomFloat(properties->minVelocity.z, properties->maxVelocity.z);
-			}
-
-			if (properties->randomiseSize)
-			{
-				particle.size = RandomFloat(properties->minSize, properties->maxSize);
-			}
-
-			if (properties->randomiseLifetime)
-			{
-				particle.lifetime = RandomFloat(properties->minLifetime, properties->maxLifetime);
-			}
-
-			if (properties->randomiseColour)
-			{
-				particle.colour[0] = RandomFloat(0.0f, 1.0f);
-				particle.colour[1] = RandomFloat(0.0f, 1.0f);
-				particle.colour[2] = RandomFloat(0.0f, 1.0f);
-				particle.colour[3] = RandomFloat(0.0f, 1.0f);
+				modifiers[j]->ApplyModifier(particle, deltaTime);
 			}
 
 			SpawnParticle(particle, 1);
 			properties->activeParticleCount++;
 		}
-
 	}
-
 
 	std::vector<int> particlesToDelete = std::vector<int>();
 	float* particleData = new float[8];
@@ -136,6 +100,7 @@ void BaseParticleEmitter::Update(double deltaTime)
 		particles[i].position.z += particles[i].velocity.z * deltaTime;
 
 
+		/*
 		glm::vec3 sphereCenter = glm::vec3(0.0f, 0.0f, 0.0f); // Center of sphere
 		float sphereRadius = 30.0f; // Radius of sphere
 
@@ -153,15 +118,17 @@ void BaseParticleEmitter::Update(double deltaTime)
 
 			// Reflect velocity using the reflection formula
 			particles[i].velocity -= 2.0f * glm::dot(particles[i].velocity, normal) * normal;
-
 			// Move particle back to the surface to prevent sticking
+
 			//particles[i].position = sphereCenter + normal * sphereRadius;
 		}
+		*/
 
+		/*
 		float startColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
 		float endColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
 
-		float factor = particles[i].lifetime / 10;
+		float factor = particles[i].position.y / 10.0f;
 		if (factor < 0.0f) factor = 0.0f;
 		if (factor > 1.0f) factor = 1.0f;
 
@@ -169,11 +136,7 @@ void BaseParticleEmitter::Update(double deltaTime)
 		for (int j = 0; j < 4; j++) {
 			particles[i].colour[j] = startColor[j] + (endColor[j] - startColor[j]) * (1.0f - factor);
 		}
-
-		for (size_t j = 0; j < modifiers.size(); j++)
-		{
-			modifiers[j]->ApplyModifier(particles[i], deltaTime);
-		}
+		*/
 
 		GetBufferData(&particles[i], 1, particleData);
 		glBindBuffer(GL_ARRAY_BUFFER, particlePropertiesBuffer.ID);
