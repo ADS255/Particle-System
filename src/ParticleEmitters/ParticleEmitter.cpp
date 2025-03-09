@@ -5,6 +5,7 @@ ParticleEmitter::ParticleEmitter() {
     modifiers = std::vector<IParticlePropertyModifier*>();
 
     modifiers.push_back(new LifetimeModifier());
+    modifiers.push_back(new SizeModifier());
     modifiers.push_back(new PositionModifier());
     modifiers.push_back(new VelocityModifier());
     modifiers.push_back(new ColourModifier());

@@ -1,5 +1,4 @@
 #include "BaseParticleEmitter.h"
-#include "stb_image.h"
 
 BaseParticleEmitter::BaseParticleEmitter(){}
 

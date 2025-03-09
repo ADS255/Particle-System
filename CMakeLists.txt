@@ -59,10 +59,6 @@ target_sources(imgui INTERFACE
     ${IMGUI_DIR}/imgui_impl_opengl3.cpp
 )
 
-add_library(stb INTERFACE)
-target_include_directories(stb INTERFACE ${STB_DIR})
-target_sources(stb INTERFACE ${STB_DIR}/stb_image.cpp)
-
 target_link_libraries(imgui INTERFACE
     glad
     glfw
@@ -94,7 +90,6 @@ target_link_libraries(ParticleSystem PUBLIC
     freetype
     imgui
     json
-    stb
 
     src
 )

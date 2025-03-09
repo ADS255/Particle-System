@@ -25,6 +25,7 @@
 #include "ColourModifier.h"
 #include "PositionModifier.h"
 #include "LifetimeModifier.h"
+#include "SizeModifier.h"
 
 class ParticleEmitter
 {
