@@ -11,7 +11,7 @@ struct EmitterProperties {
     unsigned int activeParticleCount = 0;
 
     float particleLifetime = 0.0f;
-    float colour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    glm::vec4 colour = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
     float size = 0.0f;
     glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
