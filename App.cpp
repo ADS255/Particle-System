@@ -94,7 +94,7 @@ void APIENTRY OpenGlDebugCallback(GLenum source, GLenum type, GLuint id, GLenum 
 
 int main()
 {
-	int width = 800, height = 600;
+	int width = 1920, height = 1080;
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
