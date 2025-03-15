@@ -42,6 +42,10 @@ target_link_libraries(freetype INTERFACE ${FREETYPE_DIR}/lib/freetype.lib)
 add_library(json INTERFACE)
 target_include_directories(json INTERFACE ${JSON_DIR})
 
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE ${STB_DIR})
+target_sources(stb INTERFACE ${STB_DIR}/stb_image.cpp)
+
 # Add ImGui as INTERFACE library
 add_library(imgui INTERFACE)
 
@@ -90,6 +94,7 @@ target_link_libraries(ParticleSystem PUBLIC
     freetype
     imgui
     json
+    stb
 
     src
 )
