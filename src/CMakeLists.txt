@@ -45,6 +45,7 @@ target_link_libraries(src PRIVATE
     freetype
     imgui
     json
+    stb
 )
 
 add_subdirectory(shaders)

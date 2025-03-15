@@ -13,6 +13,8 @@
 
 #include <json.hpp>
 
+#include <stb_image.h>
+
 #include "opengl/GLUtils.h"
 #include "opengl/VertexArrayObject.h"
 #include "opengl/VertexBufferObject.h"
@@ -38,7 +40,7 @@ public:
 	virtual void Initialise() = 0;
 	virtual void Destroy() = 0;
 
-	virtual void Update(double deltaTime) = 0;
+	virtual void Update(double deltaTime, glm::vec3 cameraPos) = 0;
 
 	virtual void Render(glm::mat4 view,glm::mat4 proj) = 0;
 
@@ -69,17 +71,18 @@ protected:
 
 	float RandomFloat(float min, float max);
 
-	float squareVertices[18] = {
+	float squareVertices[30] = {
 		// First triangle
-	   -0.5f,  0.5f,  0.0f,  // Top-left
-	   -0.5f, -0.5f,  0.0f,  // Bottom-left
-		0.5f, -0.5f,  0.0f,  // Bottom-right
+	   -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,  // Top-left     -> UV (0,1)
+	   -0.5f, -0.5f,  0.0f,  0.0f, 0.0f,  // Bottom-left  -> UV (0,0)
+		0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  // Bottom-right -> UV (1,0)
 
 		// Second triangle
-	   -0.5f,  0.5f,  0.0f,  // Top-left
-		0.5f, -0.5f,  0.0f,  // Bottom-right
-		0.5f,  0.5f,  0.0f   // Top-right
+	   -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,  // Top-left     -> UV (0,1)
+		0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  // Bottom-right -> UV (1,0)
+		0.5f,  0.5f,  0.0f,  1.0f, 1.0f   // Top-right    -> UV (1,1)
 	};
+
 
 	std::optional<EmitterProperties> properties;
 	EmitterProperties editorProperties;
@@ -88,6 +91,8 @@ protected:
 	double renderTime;
 	unsigned int frameDrawCallsCount = 0;
 
+	GLuint uTexSlot;
+	GLuint texture;
 	GLuint shaderProgram;
 	GLuint uMVPLoc;
 

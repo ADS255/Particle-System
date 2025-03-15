@@ -10,7 +10,7 @@ public:
 	void Initialise() override;
 	void Destroy() override;
 
-	void Update(double deltaTime) override;
+	void Update (double deltaTime,glm::vec3 cameraPos) override;
 
 	void Render(glm::mat4 view, glm::mat4 proj) override;
 

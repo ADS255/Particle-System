@@ -32,6 +32,36 @@ void BaseParticleEmitter::Initialise()
 
 	uView = glGetUniformLocation(shaderProgram, "uView");
 	uProjection = glGetUniformLocation(shaderProgram, "uProj");
+
+	uTexSlot = glGetUniformLocation(shaderProgram, "uTexSlot");
+
+	stbi_set_flip_vertically_on_load(1);
+	int w;
+	int h;
+	int comp;
+	unsigned char* image = stbi_load("assets/textures/cloud.png", &w, &h, &comp, 0);
+
+	if (!image) {
+		std::cerr << "Failed to load image: " << stbi_failure_reason() << std::endl;
+		exit;
+	}
+
+	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
+	GLenum format = (comp == 4) ? GL_RGBA : GL_RGB;
+	glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, image);
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	stbi_image_free(image);
 }
 
 void BaseParticleEmitter::Destroy()
@@ -50,7 +80,7 @@ void BaseParticleEmitter::Destroy()
 	particlePropertiesBuffers.clear();
 }
 
-void BaseParticleEmitter::Update(double deltaTime)
+void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 {
 	using Clock = std::chrono::high_resolution_clock;
 	auto frame_start = Clock::now();
@@ -159,6 +189,12 @@ void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 
 	//glBeginQuery(GL_TIME_ELAPSED, timeQueryID);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthMask(GL_FALSE);  // Disable writing to the depth buffer
+	glEnable(GL_DEPTH_TEST); // Keep depth testing enabled
+
+
 
 	frameDrawCallsCount = 0;
 	// Issue draw calls
@@ -175,10 +211,16 @@ void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 		glUseProgram(shaderProgram);
 		glUniformMatrix4fv(uView, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(uProjection, 1, GL_FALSE, glm::value_ptr(proj));
+		glUniform1i(uTexSlot, 0);
+
+		glBindTexture(GL_TEXTURE_2D, texture);
+
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		frameDrawCallsCount++;
 	}
+
+	glDepthMask(GL_TRUE);
 
 	// End the queries
 
@@ -206,7 +248,8 @@ void BaseParticleEmitter::SpawnParticle(Particle particle, int particleCount)
 	vao.Bind();
 
 	VertexBufferObject vbo = VertexBufferObject(this->squareVertices, sizeof(this->squareVertices));
-	vao.LinkAttribute(vbo, 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	vao.LinkAttribute(vbo, 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	vao.LinkAttribute(vbo, 1, 2, GL_FLOAT, GL_FALSE, 5* sizeof(float), (void*)(3 * sizeof(float)));
 
 	float* particleData = new float[particleCount * 8];
 	GetBufferData(&particle, particleCount, particleData);
@@ -216,36 +259,36 @@ void BaseParticleEmitter::SpawnParticle(Particle particle, int particleCount)
 
 	// Link the position attribute (layout 1)
 	vao.LinkAttribute(particlePropertiesBuffer,
-		1,                  // Attribute layout index
+		2,                  // Attribute layout index
 		3,                  // Number of components (x, y, z)
 		GL_FLOAT,           // Data type
 		GL_FALSE,           // Not normalized
 		stride,             // Total size of one vertex
 		(void*)0);          // Offset to position data
 
-	glVertexAttribDivisor(1, 1);
+	glVertexAttribDivisor(2, 1);
 
 	// Link the color attribute (layout 2) colour
 	vao.LinkAttribute(particlePropertiesBuffer,
-		2,
+		3,
 		4,
 		GL_FLOAT,
 		GL_FALSE,
 		stride,
 		(void*)(sizeof(float) * 3));
 
-	glVertexAttribDivisor(2, 1);
+	glVertexAttribDivisor(3, 1);
 
 	// Link the size attribute (layout 3) size
 	vao.LinkAttribute(particlePropertiesBuffer,
-		3,
+		4,
 		1,
 		GL_FLOAT,
 		GL_FALSE,
 		stride,
 		(void*)(sizeof(float) * 7));
 
-	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
 
 	//vbo.Bind();
 	//GLint bufferSize = 0;

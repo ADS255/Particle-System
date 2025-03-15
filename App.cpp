@@ -217,7 +217,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		emitter.Update(deltaTime);
+		emitter.Update(deltaTime,cameraPosition);
 		emitter.Render(view,projection);
 		profiler.BenchMark(deltaTime);
 
