@@ -1,6 +1,6 @@
 #include "BaseParticleEmitter.h"
 
-BaseParticleEmitter::BaseParticleEmitter(){}
+BaseParticleEmitter::BaseParticleEmitter() {}
 
 BaseParticleEmitter::~BaseParticleEmitter()
 {
@@ -12,6 +12,7 @@ void BaseParticleEmitter::Initialise()
 	vertexArrays = std::vector<VertexArrayObject>();
 	vertexBuffers = std::vector<VertexBufferObject>();
 	particlePropertiesBuffers = std::vector<VertexBufferObject>();
+	renderOrderIndices = std::vector<int>();
 
 	unsigned int vertexShader = GLUtils::LoadShader("shaders/baseParticleEmitter.vert", GL_VERTEX_SHADER);
 	unsigned int fragmentShader = GLUtils::LoadShader("shaders/baseParticleEmitter.frag", GL_FRAGMENT_SHADER);
@@ -49,7 +50,7 @@ void BaseParticleEmitter::Initialise()
 	glGenTextures(1, &texture);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -114,6 +115,7 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 	float* particleData = new float[8];
 
 	for (size_t i = 0; i < particles.size(); ++i) {
+
 		VertexBufferObject particlePropertiesBuffer = particlePropertiesBuffers[i];
 
 		particles[i].lifetime -= deltaTime;
@@ -175,6 +177,21 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 	RemoveParticles(particlesToDelete);
 	delete[] particleData;
 
+	renderOrderIndices.clear();
+	for (size_t i = 0; i < particles.size(); i++)
+	{
+		renderOrderIndices.push_back(i);
+	}
+
+	std::sort(renderOrderIndices.begin(), renderOrderIndices.end(), [this, &cameraPos](int a, int b) {
+	
+		float distanceSquaredA = glm::dot(this->particles[a].position - cameraPos, this->particles[a].position - cameraPos); // Squared distance for a
+		float distanceSquaredB = glm::dot(this->particles[b].position - cameraPos, this->particles[b].position - cameraPos); // Squared distance for b
+		return distanceSquaredA > distanceSquaredB; // Compare squared distances
+	});
+
+
+
 	auto frame_end = Clock::now();
 	updateTime = std::chrono::duration<double, std::milli>(frame_end - frame_start).count();
 }
@@ -205,7 +222,9 @@ void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 			continue;
 		}
 
-		VertexArrayObject vao = vertexArrays[i];
+		int vaoIndex = renderOrderIndices[i];
+
+		VertexArrayObject vao = vertexArrays[vaoIndex];
 		vao.Bind();
 
 		glUseProgram(shaderProgram);
@@ -249,7 +268,7 @@ void BaseParticleEmitter::SpawnParticle(Particle particle, int particleCount)
 
 	VertexBufferObject vbo = VertexBufferObject(this->squareVertices, sizeof(this->squareVertices));
 	vao.LinkAttribute(vbo, 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	vao.LinkAttribute(vbo, 1, 2, GL_FLOAT, GL_FALSE, 5* sizeof(float), (void*)(3 * sizeof(float)));
+	vao.LinkAttribute(vbo, 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
 	float* particleData = new float[particleCount * 8];
 	GetBufferData(&particle, particleCount, particleData);

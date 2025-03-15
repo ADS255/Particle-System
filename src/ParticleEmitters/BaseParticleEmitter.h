@@ -40,9 +40,9 @@ private:
 	std::vector<VertexBufferObject> vertexBuffers;
 	std::vector<VertexBufferObject> particlePropertiesBuffers;
 	std::vector<Particle> particles;
+	std::vector<int> renderOrderIndices;
 
 
-	// Inherited via ParticleEmitter
 	void GetBufferData(const Particle* particles, int particleCount, float* outArray) override;
 
 
