@@ -26,3 +26,5 @@
 
 #include "src/ParticleEmitters/BaseParticleEmitter.h"
 
+#include "src/benchmarking/PerformanceProfiler.h"
+

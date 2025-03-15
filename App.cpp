@@ -166,6 +166,8 @@ int main()
 	Particle p = Particle(colour, pos, velocity, size, lifetime);
 	BaseParticleEmitter emitter = BaseParticleEmitter();
 
+	PerformanceProfiler profiler = PerformanceProfiler(&emitter);
+
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -207,14 +209,8 @@ int main()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-
-		ImGui::Begin("Metrics");
-		ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0);
-		ImGui::Text("FPS: %.1f", 1.0 / deltaTime);
-		ImGui::End();
-
 		emitter.Editor();
-		emitter.Metrics();
+		profiler.Display();
 
 		ImGui::Render();
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -223,6 +219,8 @@ int main()
 
 		emitter.Update(deltaTime);
 		emitter.Render(view,projection);
+		profiler.BenchMark(deltaTime);
+
 
 		glfwSwapBuffers(window);
 	}

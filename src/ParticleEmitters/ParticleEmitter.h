@@ -49,12 +49,21 @@ public:
 	unsigned int ParticlesToEmitCount();
 
 	void Editor();
-	virtual void Metrics() = 0;
 
 	void SaveParticleSystemConfig(std::string path);
 	void LoadParticleSystemConfig(std::string path);
 
 	std::vector<IParticlePropertyModifier*> modifiers;
+
+
+	//Getters for performance data
+	virtual double GetUpdateTime() = 0;
+	virtual double GetRenderTime() = 0;
+	virtual unsigned int GetActiveParticleCount() = 0;
+	virtual unsigned int GetParticleGPUSizeBytes() = 0;
+	virtual unsigned int GetTotalParticlesGPUSizeBytes() = 0;
+	virtual unsigned int GetTotalDataTransferBytes() = 0;
+	virtual unsigned int GetTotalDrawCalls() = 0;
 
 protected:
 
@@ -77,6 +86,7 @@ protected:
 
 	double updateTime;
 	double renderTime;
+	unsigned int frameDrawCallsCount = 0;
 
 	GLuint shaderProgram;
 	GLuint uMVPLoc;

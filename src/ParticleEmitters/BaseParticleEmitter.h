@@ -19,7 +19,20 @@ public:
 	void RemoveParticles(const std::vector<int>& particlesToRemove) override;
 
 
-	void Metrics() override;
+	double GetUpdateTime() override;
+
+	double GetRenderTime() override;
+
+	unsigned int GetActiveParticleCount() override;
+
+	unsigned int GetParticleGPUSizeBytes() override;
+
+	unsigned int GetTotalParticlesGPUSizeBytes() override;
+
+	unsigned int GetTotalDataTransferBytes() override;
+
+
+	unsigned int GetTotalDrawCalls() override;
 
 private:
 
@@ -31,5 +44,7 @@ private:
 
 	// Inherited via ParticleEmitter
 	void GetBufferData(const Particle* particles, int particleCount, float* outArray) override;
+
+
 
 };

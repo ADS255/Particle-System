@@ -160,6 +160,7 @@ void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 	//glBeginQuery(GL_TIME_ELAPSED, timeQueryID);
 
 
+	frameDrawCallsCount = 0;
 	// Issue draw calls
 	for (size_t i = 0; i < vertexArrays.size(); ++i) {
 
@@ -175,6 +176,8 @@ void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 		glUniformMatrix4fv(uView, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(uProjection, 1, GL_FALSE, glm::value_ptr(proj));
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		frameDrawCallsCount++;
 	}
 
 	// End the queries
@@ -284,17 +287,6 @@ void BaseParticleEmitter::RemoveParticles(const std::vector<int>& particlesToRem
 	}
 }
 
-void BaseParticleEmitter::Metrics()
-{
-	ImGui::Begin("Particle System Metrics");
-
-	ImGui::LabelText("Active Particles", "%d", static_cast<int>(particles.size()));
-	ImGui::LabelText("Update Time", "%.3f ms", updateTime);
-	ImGui::LabelText("Render Time", "%.3f ms", renderTime);
-
-	ImGui::End();
-}
-
 
 void BaseParticleEmitter::GetBufferData(const Particle* particles, int particleCount, float* outArray)
 {
@@ -315,5 +307,50 @@ void BaseParticleEmitter::GetBufferData(const Particle* particles, int particleC
 
 		outArray[index++] = p.size;
 	}
+}
+
+double BaseParticleEmitter::GetUpdateTime()
+{
+	return updateTime;
+}
+
+double BaseParticleEmitter::GetRenderTime()
+{
+	return renderTime;
+}
+
+unsigned int BaseParticleEmitter::GetActiveParticleCount()
+{
+	if (properties) {
+		return properties->activeParticleCount;
+	}
+
+	return 0;
+}
+
+unsigned int BaseParticleEmitter::GetParticleGPUSizeBytes()
+{
+	return sizeof(float) * 8;
+}
+
+unsigned int BaseParticleEmitter::GetTotalParticlesGPUSizeBytes()
+{
+	if (properties) {
+		return properties->activeParticleCount * GetParticleGPUSizeBytes();
+	}
+	return 0;
+}
+
+unsigned int BaseParticleEmitter::GetTotalDataTransferBytes()
+{
+	if (properties) {
+		return properties->activeParticleCount * GetParticleGPUSizeBytes();
+	}
+	return 0;
+}
+
+unsigned int BaseParticleEmitter::GetTotalDrawCalls()
+{
+	return frameDrawCallsCount;
 }
 
