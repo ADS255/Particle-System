@@ -132,7 +132,7 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 
 		for (size_t j = 0; j < overLifetimeModifiers.size(); j++)
 		{
-			overLifetimeModifiers[j]->ApplyModifier(particles[j], deltaTime);
+			overLifetimeModifiers[j]->ApplyModifier(particles[i], deltaTime);
 		}
 
 		/*

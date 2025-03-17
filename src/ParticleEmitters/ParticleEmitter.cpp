@@ -13,6 +13,7 @@ ParticleEmitter::ParticleEmitter() {
     overLifetimeModifiers = std::vector<IParticlePropertyOverLifetimeModifer*>();
 
     overLifetimeModifiers.push_back(new ColourOverLifetimeModifer());
+    overLifetimeModifiers.push_back(new SizeOverLifetimeModifier());
 }
 
 unsigned int ParticleEmitter::ParticlesToEmitCount()

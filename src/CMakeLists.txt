@@ -29,7 +29,7 @@ add_library(src STATIC
  "ParticleEmitters/Vec3Modifier.cpp"
  "ParticleEmitters/SizeModifier.h"
  "ParticleEmitters/SizeModifier.cpp"
- "benchmarking/PerformanceProfiler.h" "benchmarking/PerformanceMetrics.h" "benchmarking/PerformanceProfiler.cpp" "ParticleEmitters/IParticlePropertyOverLifetimeModifier.h" "ParticleEmitters/ParticlePropertyOverLifetimeModifer.h" "ParticleEmitters/ColourOverLifetimeModifer.h" "ParticleEmitters/ColourOverLifetimeModifer.cpp")
+ "benchmarking/PerformanceProfiler.h" "benchmarking/PerformanceMetrics.h" "benchmarking/PerformanceProfiler.cpp" "ParticleEmitters/IParticlePropertyOverLifetimeModifier.h" "ParticleEmitters/ParticlePropertyOverLifetimeModifer.h" "ParticleEmitters/ColourOverLifetimeModifer.h" "ParticleEmitters/ColourOverLifetimeModifer.cpp" "ParticleEmitters/SizeOverLifetimeModifer.h" "ParticleEmitters/SizeOverLifetimeModifer.cpp")
 
 target_include_directories(src PUBLIC
     ${CMAKE_SOURCE_DIR}/src

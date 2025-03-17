@@ -31,6 +31,7 @@
 
 #include "IParticlePropertyOverLifetimeModifier.h"
 #include "ColourOverLifetimeModifer.h"
+#include "SizeOverLifetimeModifer.h"
 
 class ParticleEmitter
 {
