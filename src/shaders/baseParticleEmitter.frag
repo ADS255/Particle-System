@@ -9,7 +9,6 @@ out vec4 outColor;
 
 void main()
 {
-    //outColor = fragColor; // Set alpha to 1.0 for fully opaque
-
-    outColor = texture(uTexSlot,texCoords);
+    vec4 texColor = texture(uTexSlot, texCoords);
+    outColor = texColor * fragColor;
 }
