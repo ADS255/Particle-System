@@ -25,7 +25,11 @@ public:
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar();
 
-		ModifierUI();
+		ImGui::Checkbox(("Enabled##lifetimeModifierEnabled_" + modifierName).c_str(), &enabled);
+
+		if (enabled) {
+			ModifierUI();
+		}
 	}
 
 	virtual void ModifierUI() = 0;
@@ -37,13 +41,13 @@ protected:
 
 	T endValue;
 
-	float Interpolate(Particle& target,float startValue, float endValue) const
+	float Interpolate(Particle& target, float startValue, float endValue) const
 	{
 		float t = 1.0f - target.lifetime / target.maxLifetime;
 		return startValue + t * (endValue - startValue);
 	}
 
-	glm::vec4 Interpolate(Particle& target,glm::vec4 startValue, glm::vec4 endValue) const
+	glm::vec4 Interpolate(Particle& target, glm::vec4 startValue, glm::vec4 endValue) const
 	{
 		glm::vec4 colour = glm::vec4();
 
