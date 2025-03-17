@@ -9,6 +9,10 @@ ParticleEmitter::ParticleEmitter() {
     modifiers.push_back(new PositionModifier());
     modifiers.push_back(new VelocityModifier());
     modifiers.push_back(new ColourModifier());
+
+    overLifetimeModifiers = std::vector<IParticlePropertyOverLifetimeModifer*>();
+
+    overLifetimeModifiers.push_back(new ColourOverLifetimeModifer());
 }
 
 unsigned int ParticleEmitter::ParticlesToEmitCount()
@@ -48,6 +52,13 @@ void ParticleEmitter::Editor() {
         Initialise();
         properties = editorProperties;
 	}
+
+    ImGui::Separator();
+
+    for (size_t i = 0; i < overLifetimeModifiers.size(); ++i) {
+        IParticlePropertyOverLifetimeModifer* modifier = overLifetimeModifiers[i];
+        modifier->Editor();
+    }
 
     ImGui::Separator();
 

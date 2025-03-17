@@ -29,6 +29,9 @@
 #include "LifetimeModifier.h"
 #include "SizeModifier.h"
 
+#include "IParticlePropertyOverLifetimeModifier.h"
+#include "ColourOverLifetimeModifer.h"
+
 class ParticleEmitter
 {
 public:
@@ -56,6 +59,7 @@ public:
 	void LoadParticleSystemConfig(std::string path);
 
 	std::vector<IParticlePropertyModifier*> modifiers;
+	std::vector<IParticlePropertyOverLifetimeModifer*> overLifetimeModifiers;
 
 
 	//Getters for performance data

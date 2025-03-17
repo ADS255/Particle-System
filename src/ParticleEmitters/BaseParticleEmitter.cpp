@@ -130,6 +130,10 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 		particles[i].position.y += particles[i].velocity.y * deltaTime;
 		particles[i].position.z += particles[i].velocity.z * deltaTime;
 
+		for (size_t j = 0; j < overLifetimeModifiers.size(); j++)
+		{
+			overLifetimeModifiers[j]->ApplyModifier(particles[j], deltaTime);
+		}
 
 		/*
 		glm::vec3 sphereCenter = glm::vec3(0.0f, 0.0f, 0.0f); // Center of sphere
