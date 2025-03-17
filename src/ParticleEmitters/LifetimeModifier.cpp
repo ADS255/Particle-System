@@ -11,5 +11,7 @@ LifetimeModifier::~LifetimeModifier()
 
 void LifetimeModifier::ApplyModifier(Particle& target, double deltatime)
 {
-	target.lifetime = GetValue();
+	float value = GetValue();
+	target.lifetime = value;
+	target.maxLifetime = value;
 }
