@@ -166,19 +166,6 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 		}
 		*/
 
-		/*
-		float startColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
-		float endColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
-
-		float factor = particles[i].position.y / 10.0f;
-		if (factor < 0.0f) factor = 0.0f;
-		if (factor > 1.0f) factor = 1.0f;
-
-		// Interpolate color
-		for (int j = 0; j < 4; j++) {
-			particles[i].colour[j] = startColor[j] + (endColor[j] - startColor[j]) * (1.0f - factor);
-		}
-		*/
 
 		GetBufferData(&particles[i], 1, particleData);
 		glBindBuffer(GL_ARRAY_BUFFER, particlePropertiesBuffer.ID);
@@ -188,6 +175,7 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 	RemoveParticles(particlesToDelete);
 	delete[] particleData;
 
+	/*
 	renderOrderIndices.clear();
 	for (size_t i = 0; i < particles.size(); i++)
 	{
@@ -201,6 +189,7 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 		return distanceSquaredA > distanceSquaredB; // Compare squared distances
 	});
 
+	*/
 
 
 	auto frame_end = Clock::now();
@@ -233,9 +222,9 @@ void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 			continue;
 		}
 
-		int vaoIndex = renderOrderIndices[i];
+		//int vaoIndex = renderOrderIndices[i];
 
-		VertexArrayObject vao = vertexArrays[vaoIndex];
+		VertexArrayObject vao = vertexArrays[i];
 		vao.Bind();
 
 		glUseProgram(shaderProgram);
