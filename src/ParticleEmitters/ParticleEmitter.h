@@ -75,7 +75,10 @@ public:
 	virtual unsigned int GetTotalDrawCalls() = 0;
 
 	EmitterProperties editorProperties;
+	std::string texturePath = "";
 protected:
+
+	std::string defaultTexturePath = "assets/textures/default.png";
 
 	float RandomFloat(float min, float max);
 
