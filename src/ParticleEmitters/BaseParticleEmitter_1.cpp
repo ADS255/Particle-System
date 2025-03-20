@@ -1,18 +1,83 @@
-#include "BaseParticleEmitter.h"
+#include "BaseParticleEmitter_1.h"
 
-BaseParticleEmitter::BaseParticleEmitter() {}
+BaseParticleEmitter_1::BaseParticleEmitter_1() {
+	Initialise();
+}
 
-BaseParticleEmitter::~BaseParticleEmitter()
+BaseParticleEmitter_1::~BaseParticleEmitter_1()
 {
 	Destroy();
 }
 
-void BaseParticleEmitter::Initialise()
+void BaseParticleEmitter_1::Initialise()
 {
 	vertexArrays = std::vector<VertexArrayObject>();
 	vertexBuffers = std::vector<VertexBufferObject>();
 	particlePropertiesBuffers = std::vector<VertexBufferObject>();
-	renderOrderIndices = std::vector<int>();
+
+	vertexArrayObject = VertexArrayObject();
+	vertexArrayObject.Bind();
+
+	billboardVBO = VertexBufferObject(this->squareVertices, sizeof(this->squareVertices));
+	vertexArrayObject.LinkAttribute(billboardVBO, 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	vertexArrayObject.LinkAttribute(billboardVBO, 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	Particle particle = Particle(glm::vec4(1.0f), glm::vec3(0.0f), glm::vec3(0.0f), 10.0f, 1000.0f);
+	Particle particle2 = Particle(glm::vec4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f), 10.0f, 1000.0f);
+
+	Particle particles[2] = {
+		Particle(glm::vec4(1.0f), glm::vec3(0.0f), glm::vec3(0.0f), 10.0f, 1000.0f),
+		Particle(glm::vec4(1.0f), glm::vec3(5.0f, 5.0f, 0.0f), glm::vec3(0.0f), 10.0f, 1000.0f)
+	};
+
+	// Allocate memory for the output array
+	float* particleData = new float[16]; // Make sure this is large enough
+
+	// Pass the array instead of the address of a single particle
+	GetBufferData(particles, 2, particleData);
+
+	// Clean up dynamically allocated memory
+	particleDataVBO = VertexBufferObject(NULL, sizeof(float) * 16);
+
+	glBindBuffer(GL_ARRAY_BUFFER, particleDataVBO.ID);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 16, particleData);
+	delete[] particleData;
+
+	GLsizeiptr stride = sizeof(float) * 8;
+
+	// Link the position attribute (layout 1)
+	vertexArrayObject.LinkAttribute(particleDataVBO,
+		2,                  // Attribute layout index
+		3,                  // Number of components (x, y, z)
+		GL_FLOAT,           // Data type
+		GL_FALSE,           // Not normalized
+		stride,             // Total size of one vertex
+		(void*)0);          // Offset to position data
+
+	glVertexAttribDivisor(2, 1);
+
+	// Link the color attribute (layout 2) colour
+	vertexArrayObject.LinkAttribute(particleDataVBO,
+		3,
+		4,
+		GL_FLOAT,
+		GL_FALSE,
+		stride,
+		(void*)(sizeof(float) * 3));
+
+	glVertexAttribDivisor(3, 1);
+
+	// Link the size attribute (layout 3) size
+	vertexArrayObject.LinkAttribute(particleDataVBO,
+		4,
+		1,
+		GL_FLOAT,
+		GL_FALSE,
+		stride,
+		(void*)(sizeof(float) * 7));
+
+	glVertexAttribDivisor(4, 1);
+
 
 	unsigned int vertexShader = GLUtils::LoadShader("shaders/baseParticleEmitter.vert", GL_VERTEX_SHADER);
 	unsigned int fragmentShader = GLUtils::LoadShader("shaders/baseParticleEmitter.frag", GL_FRAGMENT_SHADER);
@@ -40,16 +105,7 @@ void BaseParticleEmitter::Initialise()
 	int w;
 	int h;
 	int comp;
-	unsigned char* image = NULL;
-
-	if (!texturePath.empty())
-	{
-		image = stbi_load(texturePath.c_str(), &w, &h, &comp, 0);
-	}
-	else
-	{
-		image = stbi_load(defaultTexturePath.c_str(), &w, &h, &comp, 0);
-	}
+	unsigned char* image = stbi_load("assets/textures/cloud.png", &w, &h, &comp, 0);
 
 	if (!image) {
 		std::cerr << "Failed to load image: " << stbi_failure_reason() << std::endl;
@@ -74,7 +130,7 @@ void BaseParticleEmitter::Initialise()
 	stbi_image_free(image);
 }
 
-void BaseParticleEmitter::Destroy()
+void BaseParticleEmitter_1::Destroy()
 {
 	for (size_t i = 0; i < particles.size(); i++)
 	{
@@ -90,7 +146,7 @@ void BaseParticleEmitter::Destroy()
 	particlePropertiesBuffers.clear();
 }
 
-void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
+void BaseParticleEmitter_1::Update(double deltaTime, glm::vec3 cameraPos)
 {
 	using Clock = std::chrono::high_resolution_clock;
 	auto frame_start = Clock::now();
@@ -175,6 +231,19 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 		}
 		*/
 
+		/*
+		float startColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+		float endColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+
+		float factor = particles[i].position.y / 10.0f;
+		if (factor < 0.0f) factor = 0.0f;
+		if (factor > 1.0f) factor = 1.0f;
+
+		// Interpolate color
+		for (int j = 0; j < 4; j++) {
+			particles[i].colour[j] = startColor[j] + (endColor[j] - startColor[j]) * (1.0f - factor);
+		}
+		*/
 
 		GetBufferData(&particles[i], 1, particleData);
 		glBindBuffer(GL_ARRAY_BUFFER, particlePropertiesBuffer.ID);
@@ -184,7 +253,6 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 	RemoveParticles(particlesToDelete);
 	delete[] particleData;
 
-	/*
 	renderOrderIndices.clear();
 	for (size_t i = 0; i < particles.size(); i++)
 	{
@@ -192,20 +260,19 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 	}
 
 	std::sort(renderOrderIndices.begin(), renderOrderIndices.end(), [this, &cameraPos](int a, int b) {
-	
+
 		float distanceSquaredA = glm::dot(this->particles[a].position - cameraPos, this->particles[a].position - cameraPos); // Squared distance for a
 		float distanceSquaredB = glm::dot(this->particles[b].position - cameraPos, this->particles[b].position - cameraPos); // Squared distance for b
 		return distanceSquaredA > distanceSquaredB; // Compare squared distances
-	});
+		});
 
-	*/
 
 
 	auto frame_end = Clock::now();
 	updateTime = std::chrono::duration<double, std::milli>(frame_end - frame_start).count();
 }
 
-void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
+void BaseParticleEmitter_1::Render(glm::mat4 view, glm::mat4 proj)
 {
 	using Clock = std::chrono::high_resolution_clock;
 	auto frame_start = Clock::now();
@@ -221,32 +288,14 @@ void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 	glEnable(GL_DEPTH_TEST); // Keep depth testing enabled
 
 
+	vertexArrayObject.Bind();
+	glUseProgram(shaderProgram);
+	glUniformMatrix4fv(uView, 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, glm::value_ptr(proj));
+	glUniform1i(uTexSlot, 0);
 
-	frameDrawCallsCount = 0;
-	// Issue draw calls
-	for (size_t i = 0; i < vertexArrays.size(); ++i) {
-
-		if (0 >= particles[i].lifetime)
-		{
-			continue;
-		}
-
-		//int vaoIndex = renderOrderIndices[i];
-
-		VertexArrayObject vao = vertexArrays[i];
-		vao.Bind();
-
-		glUseProgram(shaderProgram);
-		glUniformMatrix4fv(uView, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(uProjection, 1, GL_FALSE, glm::value_ptr(proj));
-		glUniform1i(uTexSlot, 0);
-
-		glBindTexture(GL_TEXTURE_2D, texture);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		frameDrawCallsCount++;
-	}
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6,2);
 
 	glDepthMask(GL_TRUE);
 
@@ -268,7 +317,7 @@ void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 	renderTime = std::chrono::duration<double, std::milli>(frame_end - frame_start).count();
 }
 
-void BaseParticleEmitter::SpawnParticle(Particle particle, int particleCount)
+void BaseParticleEmitter_1::SpawnParticle(Particle particle, int particleCount)
 {
 	particles.push_back(Particle(particle));
 
@@ -330,7 +379,7 @@ void BaseParticleEmitter::SpawnParticle(Particle particle, int particleCount)
 	delete[] particleData;
 }
 
-void BaseParticleEmitter::RemoveParticles(const std::vector<int>& particlesToRemove)
+void BaseParticleEmitter_1::RemoveParticles(const std::vector<int>& particlesToRemove)
 {
 	// Copy and sort indices in descending order to avoid shifting issues when erasing
 	std::vector<int> sortedIndices = particlesToRemove;
@@ -359,7 +408,7 @@ void BaseParticleEmitter::RemoveParticles(const std::vector<int>& particlesToRem
 }
 
 
-void BaseParticleEmitter::GetBufferData(const Particle* particles, int particleCount, float* outArray)
+void BaseParticleEmitter_1::GetBufferData(const Particle* particles, int particleCount, float* outArray)
 {
 	int index = 0;
 
@@ -380,17 +429,17 @@ void BaseParticleEmitter::GetBufferData(const Particle* particles, int particleC
 	}
 }
 
-double BaseParticleEmitter::GetUpdateTime()
+double BaseParticleEmitter_1::GetUpdateTime()
 {
 	return updateTime;
 }
 
-double BaseParticleEmitter::GetRenderTime()
+double BaseParticleEmitter_1::GetRenderTime()
 {
 	return renderTime;
 }
 
-unsigned int BaseParticleEmitter::GetActiveParticleCount()
+unsigned int BaseParticleEmitter_1::GetActiveParticleCount()
 {
 	if (properties) {
 		return properties->activeParticleCount;
@@ -399,12 +448,12 @@ unsigned int BaseParticleEmitter::GetActiveParticleCount()
 	return 0;
 }
 
-unsigned int BaseParticleEmitter::GetParticleGPUSizeBytes()
+unsigned int BaseParticleEmitter_1::GetParticleGPUSizeBytes()
 {
 	return sizeof(float) * 8;
 }
 
-unsigned int BaseParticleEmitter::GetTotalParticlesGPUSizeBytes()
+unsigned int BaseParticleEmitter_1::GetTotalParticlesGPUSizeBytes()
 {
 	if (properties) {
 		return properties->activeParticleCount * GetParticleGPUSizeBytes();
@@ -412,7 +461,7 @@ unsigned int BaseParticleEmitter::GetTotalParticlesGPUSizeBytes()
 	return 0;
 }
 
-unsigned int BaseParticleEmitter::GetTotalDataTransferBytes()
+unsigned int BaseParticleEmitter_1::GetTotalDataTransferBytes()
 {
 	if (properties) {
 		return properties->activeParticleCount * GetParticleGPUSizeBytes();
@@ -420,7 +469,7 @@ unsigned int BaseParticleEmitter::GetTotalDataTransferBytes()
 	return 0;
 }
 
-unsigned int BaseParticleEmitter::GetTotalDrawCalls()
+unsigned int BaseParticleEmitter_1::GetTotalDrawCalls()
 {
 	return frameDrawCallsCount;
 }
