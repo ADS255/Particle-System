@@ -14,4 +14,6 @@ private:
 
 	void ConstantModeUI() override;
 	void RandBetweenTwoConstantsUI() override;
+	void Serialise(nlohmann::json& json) override;
+	void Deserialise(nlohmann::json& json) override;
 };

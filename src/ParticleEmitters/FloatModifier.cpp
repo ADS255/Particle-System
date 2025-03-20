@@ -23,3 +23,21 @@ void FloatModifier::RandBetweenTwoConstantsUI()
 	ImGui::LabelText(("##MaxValue_" + modifierName).c_str(), ("Max " + modifierName).c_str());
 	ImGui::InputFloat(("##MaxInput_" + modifierName).c_str(), &maxValue);
 }
+
+void FloatModifier::Serialise(nlohmann::json& json)
+{
+	json["property_modifiers"].push_back({
+		{"mode", mode},
+		{"constant_value", constantValue},
+		{"min_value", minValue},
+		{"max_value", maxValue}
+		});
+}
+
+void FloatModifier::Deserialise(nlohmann::json& json)
+{
+	mode = static_cast<PropertyMode>(json["mode"].get<int>());
+	constantValue = json["constant_value"].get<float>();
+	minValue = json["min_value"].get<float>();
+	maxValue = json["max_value"].get<float>();
+}

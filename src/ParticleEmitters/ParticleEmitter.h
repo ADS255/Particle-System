@@ -33,6 +33,8 @@
 #include "ColourOverLifetimeModifer.h"
 #include "SizeOverLifetimeModifer.h"
 
+class Serialiser;
+
 class ParticleEmitter
 {
 public:
@@ -72,6 +74,7 @@ public:
 	virtual unsigned int GetTotalDataTransferBytes() = 0;
 	virtual unsigned int GetTotalDrawCalls() = 0;
 
+	EmitterProperties editorProperties;
 protected:
 
 	float RandomFloat(float min, float max);
@@ -90,7 +93,6 @@ protected:
 
 
 	std::optional<EmitterProperties> properties;
-	EmitterProperties editorProperties;
 
 	double updateTime;
 	double renderTime;

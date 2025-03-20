@@ -63,6 +63,7 @@ protected:
 
 	virtual void ConstantModeUI() = 0;
 	virtual void RandBetweenTwoConstantsUI() = 0;
+	virtual void Serialise(nlohmann::json& json) = 0;
 
 	T GetValue() const
 	{
