@@ -5,12 +5,14 @@
 
 struct Particle
 {
-    glm::vec3 position;
-    glm::vec4 colour;
-    float size;
-    glm::vec3 velocity;
-    float lifetime;
-    float maxLifetime;
+    glm::vec3 position = glm::vec3(0.0f);
+    glm::vec4 colour = glm::vec4(1.0f);
+    float size = 1.0f;
+    glm::vec3 velocity = glm::vec3(0.0f);
+    float lifetime = 1.0f;
+    float maxLifetime = 1.0f;
+
+    Particle() {}
 
     Particle(const glm::vec4 colour, const glm::vec3& position, const glm::vec3& velocity, const float size, const float lifetime)
         : position(position), velocity(velocity), size(size), lifetime(lifetime)
