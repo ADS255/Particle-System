@@ -31,8 +31,8 @@ void Serialiser::DeserialiseParticleEmitter(ParticleEmitter& emitter)
 
 	emitter.texturePath = json["texture_path"].get<std::string>();
 
-	emitter.editorProperties.particlesPerSecond = json["emission_rate"].get<unsigned int>();
-	emitter.editorProperties.particleCount = json["max_count"].get<unsigned int>();
+	emitter.particlesPerSecond = json["emission_rate"].get<unsigned int>();
+	emitter.particleCount = json["max_count"].get<unsigned int>();
 
 	for (size_t i = 0; i < emitter.modifiers.size(); ++i) {
 		IParticlePropertyModifier* modifier = emitter.modifiers[i];

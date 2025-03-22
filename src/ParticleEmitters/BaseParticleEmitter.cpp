@@ -95,20 +95,16 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 	using Clock = std::chrono::high_resolution_clock;
 	auto frame_start = Clock::now();
 
-	if (!properties)
-	{
-		return;
-	}
-	properties->timeSinceLastEmission += deltaTime;
-	if (properties->timeSinceLastEmission >= properties->emissionInterval && properties->activeParticleCount < properties->particleCount) {
+	timeSinceLastEmission += deltaTime;
+	if (timeSinceLastEmission >= emissionInterval && activeParticleCount < particleCount) {
 
 		int particlesToEmit = ParticlesToEmitCount();
 
-		properties->timeSinceLastEmission = 0;
+		timeSinceLastEmission = 0;
 
 		for (size_t i = 0; i < particlesToEmit; i++)
 		{
-			Particle particle(properties->colour, properties->position, properties->velocity, properties->size, properties->particleLifetime);
+			Particle particle = Particle();
 
 			for (size_t j = 0; j < modifiers.size(); j++)
 			{
@@ -116,7 +112,7 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 			}
 
 			SpawnParticle(particle, 1);
-			properties->activeParticleCount++;
+			activeParticleCount++;
 		}
 	}
 
@@ -192,7 +188,7 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 	}
 
 	std::sort(renderOrderIndices.begin(), renderOrderIndices.end(), [this, &cameraPos](int a, int b) {
-	
+
 		float distanceSquaredA = glm::dot(this->particles[a].position - cameraPos, this->particles[a].position - cameraPos); // Squared distance for a
 		float distanceSquaredB = glm::dot(this->particles[b].position - cameraPos, this->particles[b].position - cameraPos); // Squared distance for b
 		return distanceSquaredA > distanceSquaredB; // Compare squared distances
@@ -207,6 +203,11 @@ void BaseParticleEmitter::Update(double deltaTime, glm::vec3 cameraPos)
 
 void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 {
+	if (activeParticleCount <= 0)
+	{
+		return;
+	}
+
 	using Clock = std::chrono::high_resolution_clock;
 	auto frame_start = Clock::now();
 	//GLuint timeQueryID;
@@ -349,7 +350,7 @@ void BaseParticleEmitter::RemoveParticles(const std::vector<int>& particlesToRem
 
 			particles.erase(particles.begin() + index);
 
-			properties->activeParticleCount--;
+			activeParticleCount--;
 		}
 		else {
 			// Handle invalid index, could log or assert here
@@ -392,11 +393,8 @@ double BaseParticleEmitter::GetRenderTime()
 
 unsigned int BaseParticleEmitter::GetActiveParticleCount()
 {
-	if (properties) {
-		return properties->activeParticleCount;
-	}
+	return activeParticleCount;
 
-	return 0;
 }
 
 unsigned int BaseParticleEmitter::GetParticleGPUSizeBytes()
@@ -406,18 +404,12 @@ unsigned int BaseParticleEmitter::GetParticleGPUSizeBytes()
 
 unsigned int BaseParticleEmitter::GetTotalParticlesGPUSizeBytes()
 {
-	if (properties) {
-		return properties->activeParticleCount * GetParticleGPUSizeBytes();
-	}
-	return 0;
+	return activeParticleCount * GetParticleGPUSizeBytes();
 }
 
 unsigned int BaseParticleEmitter::GetTotalDataTransferBytes()
 {
-	if (properties) {
-		return properties->activeParticleCount * GetParticleGPUSizeBytes();
-	}
-	return 0;
+	return activeParticleCount * GetParticleGPUSizeBytes();
 }
 
 unsigned int BaseParticleEmitter::GetTotalDrawCalls()

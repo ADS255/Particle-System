@@ -19,17 +19,12 @@ ParticleEmitter::ParticleEmitter() {
 
 unsigned int ParticleEmitter::ParticlesToEmitCount()
 {
-	if (properties->particlesPerSecond == 0)
-	{
-		return 0;
-	}
+	emissionInterval = 1.0f / particlesPerSecond;
+	int particleSpawnCount = static_cast<unsigned int>(timeSinceLastEmission / emissionInterval);
 
-	properties->emissionInterval = 1.0f / properties->particlesPerSecond;
-	int particleSpawnCount = static_cast<unsigned int>(properties->timeSinceLastEmission / properties->emissionInterval);
-
-	if (properties->activeParticleCount + particleSpawnCount > properties->particleCount)
+	if (activeParticleCount + particleSpawnCount > particleCount)
 	{
-		particleSpawnCount = properties->particleCount - properties->activeParticleCount;
+		particleSpawnCount = particleCount - activeParticleCount;
 	}
 
 	return particleSpawnCount;
@@ -130,6 +125,8 @@ void ParticleEmitter::LoadParticleSystemConfig(std::string path)
 {
 	Serialiser serialiser = Serialiser();
 	serialiser.DeserialiseParticleEmitter(*this);
+	Destroy();
+	Initialise();
 
 	return;
 

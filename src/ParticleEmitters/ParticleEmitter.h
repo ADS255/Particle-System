@@ -20,7 +20,6 @@
 #include "opengl/VertexBufferObject.h"
 
 #include "Particle.h"
-#include "EmitterProperties.h"
 
 #include "IParticlePropertyModifier.h"
 #include "VelocityModifier.h";
@@ -74,11 +73,17 @@ public:
 	virtual unsigned int GetTotalDataTransferBytes() = 0;
 	virtual unsigned int GetTotalDrawCalls() = 0;
 
-	EmitterProperties editorProperties;
 	std::string texturePath = "";
+	unsigned int particlesPerSecond = 0;
+
+	unsigned int particleCount = 0;
+	unsigned int activeParticleCount = 0;
+
 protected:
 
 	std::string defaultTexturePath = "assets/textures/default.png";
+	float timeSinceLastEmission = 0.0f;
+	float emissionInterval = 0.0f;
 
 	float RandomFloat(float min, float max);
 
@@ -93,9 +98,6 @@ protected:
 		0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  // Bottom-right -> UV (1,0)
 		0.5f,  0.5f,  0.0f,  1.0f, 1.0f   // Top-right    -> UV (1,1)
 	};
-
-
-	std::optional<EmitterProperties> properties;
 
 	double updateTime;
 	double renderTime;
