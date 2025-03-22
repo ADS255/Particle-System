@@ -85,8 +85,6 @@ protected:
 	float timeSinceLastEmission = 0.0f;
 	float emissionInterval = 0.0f;
 
-	float RandomFloat(float min, float max);
-
 	float squareVertices[30] = {
 		// First triangle
 	   -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,  // Top-left     -> UV (0,1)
