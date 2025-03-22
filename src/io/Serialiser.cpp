@@ -13,10 +13,10 @@ void Serialiser::SerialiseParticleEmitter(ParticleEmitter& emitter)
 	nlohmann::json json;
 
 	json["texture_path"] = emitter.texturePath;
-	json["emission_rate"] = emitter.editorProperties.particlesPerSecond;
-	json["max_count"] = emitter.editorProperties.particleCount;
-	json["property_modifiers"] = nlohmann::json::array();
+	json["emission_rate"] = emitter.particlesPerSecond;
+	json["max_count"] = emitter.particleCount;
 
+	json["property_modifiers"] = nlohmann::json::array();
     for (size_t i = 0; i < emitter.modifiers.size(); ++i) {
         IParticlePropertyModifier* modifier = emitter.modifiers[i];
 		modifier->Serialise(json);
@@ -30,7 +30,6 @@ void Serialiser::DeserialiseParticleEmitter(ParticleEmitter& emitter)
 	nlohmann::json json = FileHandler::LoadFileJSON();
 
 	emitter.texturePath = json["texture_path"].get<std::string>();
-
 	emitter.particlesPerSecond = json["emission_rate"].get<unsigned int>();
 	emitter.particleCount = json["max_count"].get<unsigned int>();
 
