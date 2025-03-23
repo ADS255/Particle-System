@@ -7,7 +7,6 @@ public:
 	BaseParticleEmitter();
 	~BaseParticleEmitter();
 
-	void Initialise() override;
 	void Destroy() override;
 
 	void Update (double deltaTime,glm::vec3 cameraPos) override;

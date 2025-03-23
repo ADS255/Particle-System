@@ -15,6 +15,48 @@ ParticleEmitter::ParticleEmitter() {
 
 	overLifetimeModifiers.push_back(new ColourOverLifetimeModifer());
 	overLifetimeModifiers.push_back(new SizeOverLifetimeModifier());
+
+	LoadSetTexture();
+}
+
+void ParticleEmitter::LoadSetTexture()
+{
+	stbi_set_flip_vertically_on_load(1);
+	int w;
+	int h;
+	int comp;
+	unsigned char* image = NULL;
+
+	if (!texturePath.empty())
+	{
+		image = stbi_load(texturePath.c_str(), &w, &h, &comp, 0);
+	}
+	else
+	{
+		image = stbi_load(defaultTexturePath.c_str(), &w, &h, &comp, 0);
+	}
+
+	if (!image) {
+		std::cerr << "Failed to load image: " << stbi_failure_reason() << std::endl;
+		exit;
+	}
+
+	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
+	GLenum format = (comp == 4) ? GL_RGBA : GL_RGB;
+	glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, image);
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	stbi_image_free(image);
 }
 
 unsigned int ParticleEmitter::ParticlesToEmitCount()
@@ -45,8 +87,7 @@ void ParticleEmitter::Editor() {
 	}
 
 	if (ImGui::Button("Apply")) {
-		Destroy();
-		Initialise();
+		Reload();
 	}
 
 	ImGui::Separator();
@@ -77,6 +118,16 @@ void ParticleEmitter::Editor() {
 	ImGui::End();
 }
 
+void ParticleEmitter::Reload()
+{
+	activeParticleCount = 0;
+	timeSinceLastEmission = 0.0f;
+	emissionInterval = 0.0f;
+
+	LoadSetTexture();
+	Destroy();
+}
+
 void ParticleEmitter::SaveParticleSystemConfig(std::string path)
 {
 	Serialiser serialiser = Serialiser();
@@ -87,6 +138,5 @@ void ParticleEmitter::LoadParticleSystemConfig(std::string path)
 {
 	Serialiser serialiser = Serialiser();
 	serialiser.DeserialiseParticleEmitter(*this);
-	Destroy();
-	Initialise();
+	Reload();
 }

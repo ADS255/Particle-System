@@ -1,18 +1,9 @@
 #include "BaseParticleEmitter.h"
 
-BaseParticleEmitter::BaseParticleEmitter() {}
-
-BaseParticleEmitter::~BaseParticleEmitter()
-{
-	Destroy();
-}
-
-void BaseParticleEmitter::Initialise()
-{
+BaseParticleEmitter::BaseParticleEmitter() {
 	vertexArrays = std::vector<VertexArrayObject>();
 	vertexBuffers = std::vector<VertexBufferObject>();
 	particlePropertiesBuffers = std::vector<VertexBufferObject>();
-	renderOrderIndices = std::vector<int>();
 
 	unsigned int vertexShader = GLUtils::LoadShader("shaders/baseParticleEmitter.vert", GL_VERTEX_SHADER);
 	unsigned int fragmentShader = GLUtils::LoadShader("shaders/baseParticleEmitter.frag", GL_FRAGMENT_SHADER);
@@ -21,8 +12,7 @@ void BaseParticleEmitter::Initialise()
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
-
-
+	
 	int success;
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
 	if (!success) {
@@ -35,43 +25,11 @@ void BaseParticleEmitter::Initialise()
 	uProjection = glGetUniformLocation(shaderProgram, "uProj");
 
 	uTexSlot = glGetUniformLocation(shaderProgram, "uTexSlot");
+}
 
-	stbi_set_flip_vertically_on_load(1);
-	int w;
-	int h;
-	int comp;
-	unsigned char* image = NULL;
-
-	if (!texturePath.empty())
-	{
-		image = stbi_load(texturePath.c_str(), &w, &h, &comp, 0);
-	}
-	else
-	{
-		image = stbi_load(defaultTexturePath.c_str(), &w, &h, &comp, 0);
-	}
-
-	if (!image) {
-		std::cerr << "Failed to load image: " << stbi_failure_reason() << std::endl;
-		exit;
-	}
-
-	glGenTextures(1, &texture);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-
-	GLenum format = (comp == 4) ? GL_RGBA : GL_RGB;
-	glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, image);
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	stbi_image_free(image);
+BaseParticleEmitter::~BaseParticleEmitter()
+{
+	Destroy();
 }
 
 void BaseParticleEmitter::Destroy()

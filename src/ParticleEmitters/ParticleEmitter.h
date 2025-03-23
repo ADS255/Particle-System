@@ -42,7 +42,7 @@ public:
 
 	virtual ~ParticleEmitter() = default;
 
-	virtual void Initialise() = 0;
+	virtual void LoadSetTexture();
 	virtual void Destroy() = 0;
 
 	virtual void Update(double deltaTime, glm::vec3 cameraPos) = 0;
@@ -56,6 +56,7 @@ public:
 	unsigned int ParticlesToEmitCount();
 
 	void Editor();
+	virtual void Reload();
 
 	void SaveParticleSystemConfig(std::string path);
 	void LoadParticleSystemConfig(std::string path);
