@@ -179,9 +179,6 @@ void BaseParticleEmitter_2::Render(glm::mat4 view, glm::mat4 proj)
 
 
 	glDepthMask(GL_TRUE);
-
-	auto frame_end = Clock::now();
-	renderTime = std::chrono::duration<double, std::milli>(frame_end - frame_start).count();
 }
 
 void BaseParticleEmitter_2::SpawnParticle(Particle particle, int particleCount)
