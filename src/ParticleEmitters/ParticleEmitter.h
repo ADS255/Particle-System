@@ -78,6 +78,7 @@ public:
 	unsigned int particlesPerSecond = 0;
 
 	unsigned int particleCount = 0;
+	unsigned int editorParticleCount = 0;
 	unsigned int activeParticleCount = 0;
 
 protected:
@@ -85,6 +86,7 @@ protected:
 	std::string defaultTexturePath = "assets/textures/default.png";
 	float timeSinceLastEmission = 0.0f;
 	float emissionInterval = 0.0f;
+
 
 	float squareVertices[30] = {
 		// First triangle

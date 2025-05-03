@@ -78,7 +78,7 @@ void ParticleEmitter::Editor() {
 
 	ImGui::InputInt("Particles To Emit Per Second", (int*)&particlesPerSecond);
 
-	ImGui::InputInt("Particle Count", (int*)&particleCount);
+	ImGui::InputInt("Particle Count", (int*)&editorParticleCount);
 
 	for (size_t i = 0; i < modifiers.size(); ++i) {
 		IParticlePropertyModifier* modifier = modifiers[i];
@@ -123,6 +123,8 @@ void ParticleEmitter::Reload()
 	activeParticleCount = 0;
 	timeSinceLastEmission = 0.0f;
 	emissionInterval = 0.0f;
+
+	particleCount = editorParticleCount;
 
 	LoadSetTexture();
 	Destroy();
