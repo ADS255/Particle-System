@@ -1,0 +1,284 @@
+#include "BaseParticleEmitter_2.h"
+
+BaseParticleEmitter_2::BaseParticleEmitter_2() {
+	vertexArrayObject = VertexArrayObject();
+	vertexArrayObject.Bind();
+
+	billboardVBO = VertexBufferObject(this->squareVertices, sizeof(this->squareVertices));
+	vertexArrayObject.LinkAttribute(billboardVBO, 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	vertexArrayObject.LinkAttribute(billboardVBO, 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	unsigned int vertexShader = GLUtils::LoadShader("shaders/gpu.vert", GL_VERTEX_SHADER);
+	unsigned int fragmentShader = GLUtils::LoadShader("shaders/baseParticleEmitter.frag", GL_FRAGMENT_SHADER);
+	unsigned int manageComputeShader = GLUtils::LoadShader("shaders/particleManage.comp", GL_COMPUTE_SHADER);
+	unsigned int updateComputeShader = GLUtils::LoadShader("shaders/particleUpdate.comp", GL_COMPUTE_SHADER);
+
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+
+
+	int success;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	if (!success) {
+		char infoLog[512];
+		glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
+		std::cerr << "Shader program linking error:\n" << infoLog << std::endl;
+	}
+
+	uView = glGetUniformLocation(shaderProgram, "uView");
+	uProjection = glGetUniformLocation(shaderProgram, "uProj");
+	uTexSlot = glGetUniformLocation(shaderProgram, "uTexSlot");
+
+	particleManagerComputeShaderProgram = glCreateProgram();
+	glAttachShader(particleManagerComputeShaderProgram, manageComputeShader);
+	glLinkProgram(particleManagerComputeShaderProgram);
+
+	success;
+	glGetProgramiv(particleManagerComputeShaderProgram, GL_LINK_STATUS, &success);
+	if (!success) {
+		char infoLog[512];
+		glGetProgramInfoLog(particleManagerComputeShaderProgram, 512, nullptr, infoLog);
+		std::cerr << "Shader program linking error:\n" << infoLog << std::endl;
+	}
+	uActiveParticleOffset = glGetUniformLocation(particleManagerComputeShaderProgram, "uActiveParticleOffset");
+
+	particleUpdateComputeShaderProgram = glCreateProgram();
+	glAttachShader(particleUpdateComputeShaderProgram, updateComputeShader);
+	glLinkProgram(particleUpdateComputeShaderProgram);
+
+	success;
+	glGetProgramiv(particleUpdateComputeShaderProgram, GL_LINK_STATUS, &success);
+	if (!success) {
+		char infoLog[512];
+		glGetProgramInfoLog(particleUpdateComputeShaderProgram, 512, nullptr, infoLog);
+		std::cerr << "Shader program linking error:\n" << infoLog << std::endl;
+	}
+
+	uDeltaTime = glGetUniformLocation(particleUpdateComputeShaderProgram, "uDeltaTime");
+}
+
+BaseParticleEmitter_2::~BaseParticleEmitter_2()
+{
+	vertexArrayObject.Delete();
+	billboardVBO.Delete();
+	Destroy();
+}
+
+void BaseParticleEmitter_2::Destroy()
+{
+	particleDataVBO.Delete();
+	particles.clear();
+}
+
+void BaseParticleEmitter_2::Reload()
+{
+	ParticleEmitter::Reload();
+
+	glDeleteBuffers(1, &renderDataSSBO);
+	glGenBuffers(1, &renderDataSSBO);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, renderDataSSBO);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * 13 * particleCount, NULL, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, renderDataSSBO);
+
+	float* propertyData = editorPropertiesToFloatArray();
+
+	glDeleteBuffers(1, &particlePropertiesSSBO);
+	glGenBuffers(1, &particlePropertiesSSBO);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particlePropertiesSSBO);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * 24, propertyData, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, particlePropertiesSSBO);
+
+	glDeleteBuffers(1, &activeParticleCountAtomicBuffer);
+	glGenBuffers(1, &activeParticleCountAtomicBuffer);
+	glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, activeParticleCountAtomicBuffer);
+	glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &activeParticleCount, GL_DYNAMIC_DRAW);
+}
+
+void BaseParticleEmitter_2::Update(double deltaTime, glm::vec3 cameraPos)
+{
+	if (particleCount <= 0)
+	{
+		return;
+	}
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, renderDataSSBO);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, particlePropertiesSSBO);
+	glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 2, activeParticleCountAtomicBuffer);
+
+
+	timeSinceLastEmission += deltaTime;
+
+	float groupsXFloat = std::ceil(static_cast<float>(particleCount) / 64);
+	unsigned int groupsX = static_cast<unsigned int>(groupsXFloat);
+
+	if (timeSinceLastEmission >= emissionInterval && activeParticleCount < particleCount)
+	{
+		unsigned int particlesToEmit = ParticlesToEmitCount();
+
+		if (particlesToEmit > 0)
+		{
+			glUseProgram(particleManagerComputeShaderProgram);
+			glUniform1ui(uActiveParticleOffset, activeParticleCount + particlesToEmit);
+
+
+
+			std::cout << "particles to emit: " << groupsX << std::endl;
+
+			glDispatchCompute(groupsX, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+			activeParticleCount += particlesToEmit;
+			timeSinceLastEmission = 0;
+
+			glBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &activeParticleCount);
+		}
+	}
+
+	if (activeParticleCount > 0)
+	{
+		float deltaTimeF = static_cast<float>(deltaTime);
+		glUseProgram(particleUpdateComputeShaderProgram);
+		glUniform1f(uDeltaTime, deltaTimeF);
+
+		glDispatchCompute(groupsX, 1, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, activeParticleCountAtomicBuffer);
+		GLuint* counterValue = (GLuint*)glMapBuffer(GL_ATOMIC_COUNTER_BUFFER, GL_READ_ONLY);
+		activeParticleCount = *counterValue;
+		glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
+	}
+
+}
+
+void BaseParticleEmitter_2::Render(glm::mat4 view, glm::mat4 proj)
+{
+	if (particleCount <= 0 || activeParticleCount <= 0)
+	{
+		return;
+	}
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, renderDataSSBO);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthMask(GL_FALSE);
+	glEnable(GL_DEPTH_TEST);
+
+
+	vertexArrayObject.Bind();
+	glUseProgram(shaderProgram);
+	glUniformMatrix4fv(uView, 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, glm::value_ptr(proj));
+	glUniform1i(uTexSlot, 0);
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, activeParticleCount);
+
+
+	glDepthMask(GL_TRUE);
+
+	auto frame_end = Clock::now();
+	renderTime = std::chrono::duration<double, std::milli>(frame_end - frame_start).count();
+}
+
+void BaseParticleEmitter_2::SpawnParticle(Particle particle, int particleCount)
+{
+	particles.push_back(Particle(particle));
+}
+
+void BaseParticleEmitter_2::RemoveParticles(const std::vector<int>& particlesToRemove)
+{
+	std::vector<int> sortedIndices = particlesToRemove;
+	std::sort(sortedIndices.rbegin(), sortedIndices.rend());
+
+	for (int index : sortedIndices) {
+		particles.erase(particles.begin() + index);
+		activeParticleCount--;
+	}
+}
+
+
+float* BaseParticleEmitter_2::editorPropertiesToFloatArray()
+{
+	float* properties = new float[24];
+	int offset = 0;
+
+	for (IParticlePropertyModifier* modifier : modifiers) {
+
+		std::vector<float> propertyVec = modifier->AsFloats();
+
+		std::cout << "Property:" << std::endl;
+
+		for (size_t i = 0; i < propertyVec.size(); i++)
+		{
+			std::cout << propertyVec[i] << std::endl;
+			properties[offset] = propertyVec[i];
+			offset++;
+		}
+
+	}
+
+	return properties;
+}
+
+void BaseParticleEmitter_2::GetBufferData(const Particle* particles, int particleCount, float* outArray)
+{
+	int index = 0;
+
+	for (int i = 0; i < particleCount; ++i)
+	{
+		const Particle& p = particles[i];
+
+		outArray[index++] = p.position.x;
+		outArray[index++] = p.position.y;
+		outArray[index++] = p.position.z;
+
+		outArray[index++] = p.colour[0];
+		outArray[index++] = p.colour[1];
+		outArray[index++] = p.colour[2];
+		outArray[index++] = p.colour[3];
+
+		outArray[index++] = p.size;
+	}
+}
+
+double BaseParticleEmitter_2::GetUpdateTime()
+{
+	return updateTime;
+}
+
+double BaseParticleEmitter_2::GetRenderTime()
+{
+	return renderTime;
+}
+
+unsigned int BaseParticleEmitter_2::GetActiveParticleCount()
+{
+	return activeParticleCount;
+
+}
+
+unsigned int BaseParticleEmitter_2::GetParticleGPUSizeBytes()
+{
+	return sizeof(float) * 8;
+}
+
+unsigned int BaseParticleEmitter_2::GetTotalParticlesGPUSizeBytes()
+{
+	return activeParticleCount * GetParticleGPUSizeBytes();
+}
+
+unsigned int BaseParticleEmitter_2::GetTotalDataTransferBytes()
+{
+	return activeParticleCount * GetParticleGPUSizeBytes();
+}
+
+unsigned int BaseParticleEmitter_2::GetTotalDrawCalls()
+{
+	return frameDrawCallsCount;
+}
+
+
