@@ -6,6 +6,7 @@ class VertexBufferObject
 {
 public:
 	GLuint ID;
+	VertexBufferObject(){}
 	VertexBufferObject(GLfloat* vertices, GLsizeiptr size);
 
 	void Bind();
