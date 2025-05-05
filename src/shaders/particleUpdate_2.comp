@@ -1,0 +1,110 @@
+#version 460 core
+layout(local_size_x = 64) in;
+
+uniform float uDeltaTime;
+uniform uint uActiveParticleOffset;
+
+layout(std430, binding = 0) buffer PropertiesBuffer {
+    float properties[];
+};
+
+layout(binding = 1, offset = 0) uniform atomic_uint activeParticleCount;
+
+layout(std430, binding = 2) buffer PositionBuffer {
+    vec3 pos[];
+};
+
+layout(std430, binding = 3) buffer ColourBuffer {
+    vec4 colour[];
+};
+
+layout(std430, binding = 4) buffer SizeBuffer {
+    float size[];
+};
+
+layout(std430, binding = 5) buffer VelocityBuffer {
+    vec3 velocity[];
+};
+
+layout(std430, binding = 6) buffer LifetimeBuffer {
+    float lifetime[];
+};
+
+layout(std430, binding = 7) buffer MaxLifetimeBuffer {
+    float maxLifetime[];
+};
+
+shared vec3 sharedPos[64];
+shared vec3 sharedVel[64];
+shared float sharedLife[64];
+
+// Random number generator
+float random(uint seed) {
+    seed = (seed ^ 61u) ^ (seed >> 16);
+    seed *= 9u;
+    seed = seed ^ (seed >> 4);
+    seed *= 0x27d4eb2du;
+    seed = seed ^ (seed >> 15);
+    return float(seed) / 4294967296.0;
+}
+
+void main() {
+    uint localIdx = gl_LocalInvocationID.x;
+    uint globalIdx = gl_GlobalInvocationID.x;
+
+    // Load into shared memory
+    sharedPos[localIdx] = pos[globalIdx];
+    sharedVel[localIdx] = velocity[globalIdx];
+    sharedLife[localIdx] = lifetime[globalIdx];
+
+    barrier();
+
+    float life = sharedLife[localIdx];
+
+    if (life > 0.0) {
+        // Particle is alive: update position and lifetime
+        sharedPos[localIdx] += sharedVel[localIdx] * uDeltaTime;
+        float newLife = life - uDeltaTime;
+        sharedLife[localIdx] = newLife;
+
+        if (newLife <= 0.0 && life > 0.0) {
+            atomicCounterDecrement(activeParticleCount);
+        }
+    } else {
+        // Particle is dead: reinitialize
+        uint particleIndex = atomicCounterIncrement(activeParticleCount);
+        if (particleIndex < uActiveParticleOffset) {
+            sharedPos[localIdx] = vec3(
+                mix(properties[4], properties[7], random(globalIdx)),
+                mix(properties[5], properties[8], random(globalIdx + 1)),
+                mix(properties[6], properties[9], random(globalIdx + 2))
+            );
+
+            colour[globalIdx] = vec4(
+                mix(properties[16], properties[20], random(globalIdx + 3)),
+                mix(properties[17], properties[21], random(globalIdx + 4)),
+                mix(properties[18], properties[22], random(globalIdx + 5)),
+                mix(properties[19], properties[23], random(globalIdx + 6))
+            );
+
+            size[globalIdx] = mix(properties[2], properties[3], random(globalIdx + 7));
+
+            sharedVel[localIdx] = vec3(
+                mix(properties[10], properties[13], random(globalIdx + 8)),
+                mix(properties[11], properties[14], random(globalIdx + 9)),
+                mix(properties[12], properties[15], random(globalIdx + 10))
+            );
+
+            float newLifetime = mix(properties[0], properties[1], random(globalIdx + 11));
+            sharedLife[localIdx] = newLifetime;
+            maxLifetime[globalIdx] = newLifetime;
+        }
+    }
+
+    barrier();
+
+    // Write back to global memory
+    pos[globalIdx] = sharedPos[localIdx];
+    velocity[globalIdx] = sharedVel[localIdx];
+    lifetime[globalIdx] = sharedLife[localIdx];
+}

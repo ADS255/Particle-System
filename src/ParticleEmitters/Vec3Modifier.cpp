@@ -41,3 +41,32 @@ void Vec3Modifier::Deserialise(nlohmann::json& json)
 	minValue = glm::vec3(json["min_value"][0].get<float>(), json["min_value"][1].get<float>(), json["min_value"][2].get<float>());
 	maxValue = glm::vec3(json["max_value"][0].get<float>(), json["max_value"][1].get<float>(), json["max_value"][2].get<float>());
 }
+
+std::vector<float> Vec3Modifier::AsFloats()
+{
+	std::vector<float> properties;
+
+	switch (mode)
+	{
+	case PropertyMode::Constant:
+		properties.push_back(constantValue.x);
+		properties.push_back(constantValue.y);
+		properties.push_back(constantValue.z);
+
+		properties.push_back(constantValue.x);
+		properties.push_back(constantValue.y);
+		properties.push_back(constantValue.z);
+		break;
+	case PropertyMode::RandomBetweenTwoConstants:
+		properties.push_back(minValue.x);
+		properties.push_back(minValue.y);
+		properties.push_back(minValue.z);
+
+		properties.push_back(maxValue.x);
+		properties.push_back(maxValue.y);
+		properties.push_back(maxValue.z);
+		break;
+	}
+
+	return properties;
+}

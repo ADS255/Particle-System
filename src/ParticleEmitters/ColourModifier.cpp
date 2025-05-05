@@ -52,3 +52,36 @@ void ColourModifier::Deserialise(nlohmann::json& json)
 	minValue = glm::vec4(json["min_value"][0].get<float>(), json["min_value"][1].get<float>(), json["min_value"][2].get<float>(), json["min_value"][3].get<float>());
 	maxValue = glm::vec4(json["max_value"][0].get<float>(), json["max_value"][1].get<float>(), json["max_value"][2].get<float>(), json["max_value"][3].get<float>());
 }
+
+std::vector<float> ColourModifier::AsFloats()
+{
+	std::vector<float> properties;
+
+	switch (mode)
+	{
+	case PropertyMode::Constant:
+		properties.push_back(constantValue[0]);
+		properties.push_back(constantValue[1]);
+		properties.push_back(constantValue[2]);
+		properties.push_back(constantValue[3]);
+
+		properties.push_back(constantValue[0]);
+		properties.push_back(constantValue[1]);
+		properties.push_back(constantValue[2]);
+		properties.push_back(constantValue[3]);
+		break;
+	case PropertyMode::RandomBetweenTwoConstants:
+		properties.push_back(minValue[0]);
+		properties.push_back(minValue[1]);
+		properties.push_back(minValue[2]);
+		properties.push_back(minValue[3]);
+
+		properties.push_back(maxValue[0]);
+		properties.push_back(maxValue[1]);
+		properties.push_back(maxValue[2]);
+		properties.push_back(maxValue[3]);
+		break;
+	}
+
+	return properties;
+}

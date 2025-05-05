@@ -165,9 +165,6 @@ void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 	{
 		return;
 	}
-
-	using Clock = std::chrono::high_resolution_clock;
-	auto frame_start = Clock::now();
 	//GLuint timeQueryID;
 	//glGenQueries(1, &timeQueryID);       // Create query for time elapsed
 
@@ -222,9 +219,6 @@ void BaseParticleEmitter::Render(glm::mat4 view, glm::mat4 proj)
 
 	// Cleanup
 	//glDeleteQueries(1, &timeQueryID);
-
-	auto frame_end = Clock::now();
-	renderTime = std::chrono::duration<double, std::milli>(frame_end - frame_start).count();
 }
 
 void BaseParticleEmitter::SpawnParticle(Particle particle, int particleCount)
@@ -357,7 +351,7 @@ unsigned int BaseParticleEmitter::GetActiveParticleCount()
 
 unsigned int BaseParticleEmitter::GetParticleGPUSizeBytes()
 {
-	return sizeof(float) * 8;
+	return (sizeof(float) * 8) + (30*sizeof(float));
 }
 
 unsigned int BaseParticleEmitter::GetTotalParticlesGPUSizeBytes()

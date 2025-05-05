@@ -1,5 +1,12 @@
 ﻿#include "App.h"
 
+#include "src/io/FileHandler.h"
+#include "src/io/Serialiser.h"
+
+#include "src/ParticleEmitters/BaseParticleEmitter_2.h"
+#include "src/ParticleEmitters/BaseParticleEmitter_3.h"
+#include "src/ParticleEmitters/BaseParticleEmitter_1.h"
+
 void APIENTRY OpenGlDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
 	std::string src;
@@ -35,62 +42,9 @@ void APIENTRY OpenGlDebugCallback(GLenum source, GLenum type, GLuint id, GLenum 
 	std::cout << " Source: " << src << std::endl;
 	std::cout << " Type: " << typ << std::endl;
 	std::cout << " Severity: " << sev << "\n" << std::endl;
+
+	std::exit(EXIT_FAILURE);
 }
-
-/*void Editor() {
-	static int particleCount;
-
-	ImGui::Begin("Particle System Editor");
-
-	// Display particle properties for editing
-	ImGui::InputInt("Count", &particleCount);
-
-	// Position input (x, y)
-	ImGui::InputFloat3("Position", &EmitterProperties.position[0]);
-
-	// Color input (RGBA normalized)
-	ImGui::ColorEdit4("Color", EmitterProperties.colour); // Make sure this is a float[4] (RGBA)
-
-	// Velocity input (x, y)
-	ImGui::InputFloat3("Velocity", &EmitterProperties.velocity[0]);
-
-	// Size input
-	ImGui::InputFloat("Size", &EmitterProperties.size);
-
-	// Display current particle values in the editor
-	ImGui::Text("Particle Properties:");
-	ImGui::Text("Position: (%.2f, %.2f)", EmitterProperties.position[0], EmitterProperties.position[1]);
-	ImGui::Text("Color: (%.2f, %.2f, %.2f, %.2f)", EmitterProperties.colour[0], EmitterProperties.colour[1], EmitterProperties.colour[2], EmitterProperties.colour[3]);
-	ImGui::Text("Velocity: (%.2f, %.2f)", EmitterProperties.velocity[0], EmitterProperties.velocity[1]);
-	ImGui::Text("Size: %.2f", EmitterProperties.size);
-
-	// Apply button to update the emitter with the new particle values
-	if (ImGui::Button("Apply")) {
-
-		float colour[] = { 1.0f,1.0f,0.0f,1.0f };
-		glm::vec3 pos = glm::vec3(1.0f, 1.0f, 1.0f);
-		glm::vec3 velocity = glm::vec3(1.0f, 1.0f, 1.0f);
-		float size = 1.0f;
-		float lifetime = 10.0f;
-
-		Particle p = Particle(colour, pos, velocity, size, lifetime);
-		BaseParticleEmitter* newEmitter = new BaseParticleEmitter(p, 10);
-
-		if (bpe) {
-			// Clear old emitter and create a new one with updated particle values
-			delete bpe; // Dereference the pointer-to-pointer to delete the original emitter
-			bpe = nullptr;
-		}
-
-		// Now assign the new emitter
-		bpe = newEmitter;
-
-		// Create a new particle emitter with the updated particle settings
-	}
-
-	ImGui::End();
-}*/
-
 
 int main()
 {
@@ -119,8 +73,8 @@ int main()
 	}
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
 
 
@@ -136,9 +90,45 @@ int main()
 	std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
 	std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
+
+	// Get the maximum number of workgroups (X, Y, Z)
+	int maxWorkGroups[3];
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &maxWorkGroups[0]); // X dimension
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &maxWorkGroups[1]); // Y dimension
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &maxWorkGroups[2]); // Z dimension
+
+	std::cout << "Max Workgroups: "
+		<< "X: " << maxWorkGroups[0] << ", "
+		<< "Y: " << maxWorkGroups[1] << ", "
+		<< "Z: " << maxWorkGroups[2] << std::endl;
+
+	int maxLocalSizeDimensions[3];
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &maxLocalSizeDimensions[0]);
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &maxLocalSizeDimensions[1]);
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &maxLocalSizeDimensions[2]);
+
+	std::cout << "Max Local Dimensions: "
+		<< "X: " << maxLocalSizeDimensions[0] << ", "
+		<< "Y: " << maxLocalSizeDimensions[1] << ", "
+		<< "Z: " << maxLocalSizeDimensions[2] << std::endl;
+
+	// Query the maximum number of SSBO bindings
+	GLint maxSSBOs;
+	glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &maxSSBOs);
+	std::cout << "Maximum number of SSBO bindings: " << maxSSBOs << std::endl;
+
+	// Query the maximum size of an individual SSBO
+	GLint maxSSBOSize;
+	glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &maxSSBOSize);
+	std::cout << "Maximum size of an individual SSBO: " << maxSSBOSize << " bytes" << std::endl;
+
+
+
+
+
 	glm::mat4 model = glm::mat4(1.0f);
 
-	glm::vec3 cameraPosition(0.0f, 30.0f, 30.0f);
+	glm::vec3 cameraPosition(0.0f, 0.0f, 30.0f);
 	glm::vec3 targetPosition(0.0f, 0.0f, 0.0f);
 	glm::vec3 up(0.0f, 1.0f, 0.0f);
 
@@ -157,14 +147,11 @@ int main()
 
 	//glm::mat4 mvp = projection * view * model;
 
-	glm::vec4 colour = glm::vec4 (1.0f,1.0f,0.0f,1.0f);
-	glm::vec3 pos = glm::vec3(1.0f, 1.0f, 1.0f);
-	glm::vec3 velocity = glm::vec3(1.0f, 1.0f, 1.0f);
-	float size = 1.0f;
-	float lifetime = 10.0f;
 
-	Particle p = Particle(colour, pos, velocity, size, lifetime);
-	BaseParticleEmitter emitter = BaseParticleEmitter();
+	BaseParticleEmitter_2 emitter = BaseParticleEmitter_2();
+	//BaseParticleEmitter_1 emitter = BaseParticleEmitter_1();
+	//BaseParticleEmitter_3 emitter = BaseParticleEmitter_3();
+	//BaseParticleEmitter emitter = BaseParticleEmitter();
 
 	PerformanceProfiler profiler = PerformanceProfiler(&emitter);
 
@@ -187,17 +174,17 @@ int main()
 		double deltaTime = currentTime - previousFrameTime;
 		previousFrameTime = currentTime;
 
-		/*
-		float radius = 30.0f; // Distance from origin
-		float angle = glfwGetTime() *0.25f; // Use time to animate
+		//float radius = 30.0f; // Distance from origin
+		//float angle = glfwGetTime() *0.25f; // Use time to animate
 
-		cameraPosition.x = radius * cos(angle);
-		cameraPosition.z = radius * sin(angle);
-		cameraPosition.y = 30.0f; // Keep Y constant for a horizontal orbit
+		//cameraPosition.x = radius * cos(angle);
+		//cameraPosition.z = radius * sin(angle);
+		//cameraPosition.y = 30.0f; // Keep Y constant for a horizontal orbit
 
 		// Recalculate view matrix
-		view = glm::lookAt(cameraPosition, targetPosition, up);
+		//view = glm::lookAt(cameraPosition, targetPosition, up);
 
+		/*
 		// Recalculate MVP
 		mvp = projection * view * model;*/
 
@@ -217,8 +204,8 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		emitter.Update(deltaTime,cameraPosition);
-		emitter.Render(view,projection);
+		emitter.Update(deltaTime, cameraPosition);
+		emitter.Render(view, projection);
 		profiler.BenchMark(deltaTime);
 
 

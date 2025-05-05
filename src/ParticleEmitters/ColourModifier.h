@@ -16,4 +16,5 @@ private:
 	void RandBetweenTwoConstantsUI() override;
 	void Serialise(nlohmann::json& json) override;
 	void Deserialise(nlohmann::json& json) override;
+	std::vector<float> AsFloats() override;
 };

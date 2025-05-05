@@ -1,0 +1,94 @@
+#version 460 core
+
+layout(local_size_x = 64) in; // Single-threaded for simplicity
+
+
+layout(std430, binding = 0) buffer PropertiesBuffer {
+    float properties[]; // Access to the float array values
+};
+
+layout(binding = 1, offset = 0) uniform atomic_uint activeParticleCount;
+
+layout(std430, binding = 2) buffer PositionBuffer {
+    vec3 pos[];
+};
+
+layout(std430, binding = 3) buffer ColourBuffer {
+    vec4 colour[];
+};
+
+layout(std430, binding = 4) buffer SizeBuffer {
+    float size[];
+};
+
+layout(std430, binding = 5) buffer VelocityBuffer {
+    vec3 velocity[];
+};
+
+layout(std430, binding = 6) buffer lifetimeBuffer {
+    float lifetime[];
+};
+
+layout(std430, binding = 7) buffer maxLifetimeBuffer {
+    float maxLifetime[];
+};
+
+
+// properties memory layout
+// lifetime 2 floats offset: 0
+// size 2 floats offset: 2
+// position 6 floats offset: 4
+// velocity 6 floats offset: 10
+// colour 8 floats offset: 16
+
+uniform uint uActiveParticleOffset;
+
+//pseudo-random generator
+float random(uint seed) {
+    seed = (seed ^ 61u) ^ (seed >> 16);
+    seed *= 9u;
+    seed = seed ^ (seed >> 4);
+    seed *= 0x27d4eb2du;
+    seed = seed ^ (seed >> 15);
+    return float(seed) / 4294967296.0; // Normalize to [0,1)
+}
+
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+
+    if (lifetime[idx] > 0.0) {
+        return;
+    }
+
+    uint particleIndex = atomicCounterIncrement(activeParticleCount);
+    if (particleIndex >= uActiveParticleOffset) {
+        return;
+    }
+
+
+    pos[idx] = vec3(
+        mix(properties[4], properties[7], random(idx)),
+        mix(properties[5], properties[8], random(idx + 1)),
+        mix(properties[6], properties[9], random(idx + 2))
+    );
+
+    colour[idx] = vec4(
+        mix(properties[16], properties[20], random(idx + 3)),
+        mix(properties[17], properties[21], random(idx + 4)),
+        mix(properties[18], properties[22], random(idx + 5)),
+        mix(properties[19], properties[23], random(idx + 6))
+    );
+
+    size[idx] = mix(properties[2], properties[3], random(idx + 7));
+
+    velocity[idx] = vec3(
+        mix(properties[10], properties[13], random(idx + 8)),
+        mix(properties[11], properties[14], random(idx + 9)),
+        mix(properties[12], properties[15], random(idx + 10))
+    );
+
+    float newLifetime = mix(properties[0], properties[1], random(idx + 11));
+    lifetime[idx] = newLifetime;
+    maxLifetime[idx] = newLifetime;
+}

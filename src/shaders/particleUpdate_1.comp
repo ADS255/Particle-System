@@ -1,0 +1,53 @@
+#version 460 core
+layout(local_size_x = 64) in; // 64 threads per group
+
+uniform float uDeltaTime; 
+
+layout(binding = 1, offset = 0) uniform atomic_uint activeParticleCount;
+
+layout(std430, binding = 2) buffer PositionBuffer {
+    vec3 pos[];
+};
+
+layout(std430, binding = 5) buffer VelocityBuffer {
+    vec3 velocity[];
+};
+
+layout(std430, binding = 6) buffer lifetimeBuffer {
+    float lifetime[];
+};
+
+shared vec3 sharedPos[64];
+shared vec3 sharedVel[64];
+shared float sharedLife[64];
+
+void main() {
+    uint localIdx = gl_LocalInvocationID.x;
+    uint globalIdx = gl_GlobalInvocationID.x;
+
+    // --- Load global memory into shared memory ---
+    sharedPos[localIdx] = pos[globalIdx];
+    sharedVel[localIdx] = velocity[globalIdx];
+    sharedLife[localIdx] = lifetime[globalIdx];
+
+    barrier();
+
+    // --- Process shared memory ---
+    float life = sharedLife[localIdx];
+
+    if (life > 0.0) {
+        sharedPos[localIdx] += sharedVel[localIdx] * uDeltaTime;
+        float newLife = life - uDeltaTime;
+        sharedLife[localIdx] = newLife;
+
+        if (newLife <= 0.0 && life > 0.0) {
+            atomicCounterDecrement(activeParticleCount);
+        }
+    }
+
+    barrier();
+
+    // --- Store back to global memory ---
+    pos[globalIdx] = sharedPos[localIdx];
+    lifetime[globalIdx] = sharedLife[localIdx];
+}

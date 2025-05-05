@@ -1,0 +1,38 @@
+#version 460 core
+layout(local_size_x = 64) in;
+
+uniform float uDeltaTime; 
+
+layout(std430, binding = 0) buffer DataBuffer {
+    float values[];
+};
+
+layout(binding = 2, offset = 0) uniform atomic_uint activeParticleCount;
+
+
+void main() {
+    
+    uint offset = gl_GlobalInvocationID.x * 13;
+    float lifetime = values[offset + 11];
+
+    if (lifetime <= 0.0) {
+        return;
+    }
+
+    //barrier();
+
+    // Apply update
+    values[offset]     += values[offset + 8] * uDeltaTime;
+    values[offset + 1] += values[offset + 9] * uDeltaTime;
+    values[offset + 2] += values[offset + 10] * uDeltaTime;
+
+    // Decrement and re-store lifetime
+    lifetime -= uDeltaTime;
+    values[offset + 11] = lifetime;
+
+    // Now check the transition correctly:
+    if (lifetime <= 0.0 && (lifetime + uDeltaTime) > 0.0) {
+        atomicCounterDecrement(activeParticleCount);
+    }
+
+}

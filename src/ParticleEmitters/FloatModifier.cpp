@@ -41,3 +41,23 @@ void FloatModifier::Deserialise(nlohmann::json& json)
 	minValue = json["min_value"].get<float>();
 	maxValue = json["max_value"].get<float>();
 }
+
+std::vector<float> FloatModifier::AsFloats()
+{
+	std::vector<float> properties;
+
+	switch (mode)
+	{
+	case PropertyMode::Constant:
+		properties.push_back(constantValue);
+		properties.push_back(constantValue);
+
+		break;
+	case PropertyMode::RandomBetweenTwoConstants:
+		properties.push_back(minValue);
+		properties.push_back(maxValue);
+		break;
+	}
+
+	return properties;
+}

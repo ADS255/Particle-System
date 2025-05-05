@@ -41,7 +41,11 @@ add_library(src STATIC
  "io/FileHandler.h" "io/FileHandler.cpp" 
  "io/Serialiser.h" 
  "io/Serialiser.cpp"
-)
+
+ "ParticleEmitters/BaseParticleEmitter_1.h"
+ "ParticleEmitters/BaseParticleEmitter_1.cpp"
+ "ParticleEmitters/BaseParticleEmitter_2.cpp" 
+ "ParticleEmitters/BaseParticleEmitter_2.h" "ParticleEmitters/BaseParticleEmitter_3.h" "ParticleEmitters/BaseParticleEmitter_3.cpp")
 
 target_include_directories(src PUBLIC
     ${CMAKE_SOURCE_DIR}/src
