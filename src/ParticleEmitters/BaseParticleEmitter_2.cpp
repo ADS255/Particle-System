@@ -76,10 +76,12 @@ void BaseParticleEmitter_2::Reload()
 {
 	ParticleEmitter::Reload();
 
+	std::vector<float> zeroed(13 * particleCount, 0.0f);
+
 	glDeleteBuffers(1, &renderDataSSBO);
 	glGenBuffers(1, &renderDataSSBO);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, renderDataSSBO);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * 13 * particleCount, NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * 13 * particleCount, zeroed.data(), GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, renderDataSSBO);
 
 	float* propertyData = editorPropertiesToFloatArray();
@@ -121,10 +123,6 @@ void BaseParticleEmitter_2::Update(double deltaTime, glm::vec3 cameraPos)
 		{
 			glUseProgram(particleManagerComputeShaderProgram);
 			glUniform1ui(uActiveParticleOffset, activeParticleCount + particlesToEmit);
-
-
-
-			std::cout << "particles to emit: " << groupsX << std::endl;
 
 			glDispatchCompute(groupsX, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);

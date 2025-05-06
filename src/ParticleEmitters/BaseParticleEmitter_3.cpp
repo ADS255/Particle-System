@@ -115,10 +115,12 @@ void BaseParticleEmitter_3::Reload()
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * 3 * particleCount, NULL, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, particleVelocitySSBO);
 
+	std::vector<float> zeroed(particleCount, 0.0f);
+
 	glDeleteBuffers(1, &particleLifetimeSBBO);
 	glGenBuffers(1, &particleLifetimeSBBO);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleLifetimeSBBO);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * particleCount, NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * particleCount, zeroed.data(), GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, particleLifetimeSBBO);
 
 	glDeleteBuffers(1, &particleMaxLifetimeSSBO);
@@ -126,35 +128,6 @@ void BaseParticleEmitter_3::Reload()
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleMaxLifetimeSSBO);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * particleCount, NULL, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, particleMaxLifetimeSSBO);
-
-
-	/*
-	glm::vec3 testPos(0.0f, 0.0f, 0.0f);
-	glm::vec4 testColor(1.0f, 0.0f, 0.0f, 1.0f); // red
-	float testSize = 10.0f; // pixels if you're using gl_PointSize
-	glm::vec3 testVelocity(0.0f, 0.0f, 0.0f);
-	float testLifetime = 5.0f;
-	float testMaxLifetime = 5.0f;
-
-	// Write to GPU buffers (only for first particle)
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particlePosSSBO);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::vec3), &testPos);
-
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleColourSSBO);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::vec4), &testColor);
-
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSizeSSBO);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(float), &testSize);
-
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleVelocitySSBO);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::vec3), &testVelocity);
-
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleLifetimeSBBO);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(float), &testLifetime);
-
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleMaxLifetimeSSBO);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(float), &testMaxLifetime);
-	*/
 }
 
 void BaseParticleEmitter_3::Update(double deltaTime, glm::vec3 cameraPos)
@@ -178,6 +151,9 @@ void BaseParticleEmitter_3::Update(double deltaTime, glm::vec3 cameraPos)
 
 	timeSinceLastEmission += deltaTime;
 
+	float groupsXFloat = std::ceil(static_cast<float>(particleCount) / 64);
+	unsigned int groupsX = static_cast<unsigned int>(groupsXFloat);
+
 	if (timeSinceLastEmission >= emissionInterval && activeParticleCount < particleCount)
 	{
 		unsigned int particlesToEmit = ParticlesToEmitCount();
@@ -187,8 +163,7 @@ void BaseParticleEmitter_3::Update(double deltaTime, glm::vec3 cameraPos)
 			glUseProgram(particleManagerComputeShaderProgram);
 			glUniform1ui(uActiveParticleOffset, activeParticleCount + particlesToEmit);
 
-			//glDispatchCompute(particleCount, 1, 1);
-			glDispatchCompute(std::ceil(particleCount / 64), 1, 1);
+			glDispatchCompute(groupsX, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 			activeParticleCount += particlesToEmit;
@@ -201,15 +176,13 @@ void BaseParticleEmitter_3::Update(double deltaTime, glm::vec3 cameraPos)
 	
 	}
 
-	//std::cout << activeParticleCount << std::endl;
-
 	if (activeParticleCount > 0)
 	{
 		float deltaTimeF = static_cast<float>(deltaTime);
 		glUseProgram(particleUpdateComputeShaderProgram);
 		glUniform1f(uDeltaTime, deltaTimeF);
 		//glDispatchCompute(particleCount, 1, 1);
-		glDispatchCompute(std::ceil(particleCount / 64), 1, 1);
+		glDispatchCompute(groupsX, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, activeParticleCountAtomicBuffer);
@@ -217,8 +190,6 @@ void BaseParticleEmitter_3::Update(double deltaTime, glm::vec3 cameraPos)
 		activeParticleCount = *counterValue;
 		glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
 	}
-
-	//std::cout << activeParticleCount << std::endl;
 }
 
 void BaseParticleEmitter_3::Render(glm::mat4 view, glm::mat4 proj)
@@ -228,18 +199,10 @@ void BaseParticleEmitter_3::Render(glm::mat4 view, glm::mat4 proj)
 		return;
 	}
 
-	using Clock = std::chrono::high_resolution_clock;
-	auto frame_start = Clock::now();
-
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, particlePosSSBO);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, particleColourSSBO);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, particleSizeSSBO);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, particleLifetimeSBBO);
-	//GLuint timeQueryID;
-	//glGenQueries(1, &timeQueryID);       // Create query for time elapsed
-
-
-	//glBeginQuery(GL_TIME_ELAPSED, timeQueryID);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -256,47 +219,7 @@ void BaseParticleEmitter_3::Render(glm::mat4 view, glm::mat4 proj)
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, activeParticleCount);
 
-	/*
-	GLuint query;
-	glGenQueries(1, &query);
-
-	// Begin query
-	glBeginQuery(GL_PRIMITIVES_GENERATED, query);
-
-	// Your draw call
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, activeParticleCount);
-
-	// End query
-	glEndQuery(GL_PRIMITIVES_GENERATED);
-
-	// Get the result
-	GLuint primitivesGenerated = 0;
-	glGetQueryObjectuiv(query, GL_QUERY_RESULT, &primitivesGenerated);
-
-	printf("Primitives generated: %u\n", primitivesGenerated);
-	*/
-
-
-
 	glDepthMask(GL_TRUE);
-
-	// End the queries
-
-	//glEndQuery(GL_TIME_ELAPSED);
-
-	// Retrieve query results
-	//GLuint64 elapsedTime = 0;
-	//glGetQueryObjectui64v(timeQueryID, GL_QUERY_RESULT, &elapsedTime);
-
-	// Print the results
-	//std::cout << "GPU Time for Draw Calls: " << elapsedTime / 1e6 << " ms" << std::endl;
-
-	// Cleanup
-	//glDeleteQueries(1, &timeQueryID);
-
-	auto frame_end = Clock::now();
-	renderTime = std::chrono::duration<double, std::milli>(frame_end - frame_start).count();
 }
 
 void BaseParticleEmitter_3::SpawnParticle(Particle particle, int particleCount)
