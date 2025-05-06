@@ -58,8 +58,8 @@ public:
 	void Editor();
 	virtual void Reload();
 
-	void SaveParticleSystemConfig(std::string path);
-	void LoadParticleSystemConfig(std::string path);
+	void SaveParticleSystemConfig();
+	void LoadParticleSystemConfig();
 
 	std::vector<IParticlePropertyModifier*> modifiers;
 	std::vector<IParticlePropertyOverLifetimeModifer*> overLifetimeModifiers;

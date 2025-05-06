@@ -99,21 +99,15 @@ void ParticleEmitter::Editor() {
 
 	ImGui::Separator();
 
-	static std::string savePath = "assets/ps_config.json";
 
 	if (ImGui::Button("Save Config")) {
-		this->SaveParticleSystemConfig(savePath);
+		this->SaveParticleSystemConfig();
 	}
-	ImGui::InputText("Save Path", &savePath[0], savePath.capacity());
-
-	ImGui::Separator();
-
-	static std::string loadPath = "assets/ps_config.json";
 
 	if (ImGui::Button("Load Config")) {
-		this->LoadParticleSystemConfig(loadPath);
+		this->LoadParticleSystemConfig();
 	}
-	ImGui::InputText("Load Path", &loadPath[0], loadPath.capacity());
+
 
 	ImGui::End();
 }
@@ -130,13 +124,13 @@ void ParticleEmitter::Reload()
 	Destroy();
 }
 
-void ParticleEmitter::SaveParticleSystemConfig(std::string path)
+void ParticleEmitter::SaveParticleSystemConfig()
 {
 	Serialiser serialiser = Serialiser();
 	serialiser.SerialiseParticleEmitter(*this);
 }
 
-void ParticleEmitter::LoadParticleSystemConfig(std::string path)
+void ParticleEmitter::LoadParticleSystemConfig()
 {
 	Serialiser serialiser = Serialiser();
 	serialiser.DeserialiseParticleEmitter(*this);
