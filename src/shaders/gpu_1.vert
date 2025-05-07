@@ -29,12 +29,20 @@ void main()
 {
     int index = gl_InstanceID;
 
-    vec3 particlePos = pos[index]; // Or read pos[index];
-    float particleSize = size[index];         // Hardcoded for now
-    vec4 particleColor = vec4(1,1,1,1); // Hardcoded for now
+    vec3 particlePos = pos[index];
+    float particleSize = size[index];
+    float particleLifetime = lifetime[index]; 
+    vec4 particleColor = colour[index];
 
     fragColor = particleColor;
     texCoords = inTexCoords;
+
+    if (particleLifetime <= 0) {
+        // If particle lifetime < 0
+        // Push vertex outside clip space to ensure it's clipped and discarded before rasterization
+        gl_Position = vec4(-9999.0, -9999.0, -9999.0, 1.0);
+        return;
+    }
 
     // Extract camera right and up vectors from view matrix
     vec3 right = normalize(vec3(uView[0][0], uView[1][0], uView[2][0]));
