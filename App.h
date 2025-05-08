@@ -25,6 +25,7 @@
 #include "src/ParticleEmitters/Particle.h"
 
 #include "src/ParticleEmitters/BaseParticleEmitter.h"
+#include "src/ParticleEmitters/BaseParticleEmitter_3.h"
 
 #include "src/benchmarking/PerformanceProfiler.h"
 
