@@ -148,13 +148,18 @@ int main()
 	//glm::mat4 mvp = projection * view * model;
 
 
-	BaseParticleEmitter_2 emitter = BaseParticleEmitter_2();
+	//BaseParticleEmitter_2 emitter = BaseParticleEmitter_2();
 	//BaseParticleEmitter_1 emitter = BaseParticleEmitter_1();
-	//BaseParticleEmitter_3 emitter = BaseParticleEmitter_3();
+	BaseParticleEmitter_3 emitter = BaseParticleEmitter_3();
 	//BaseParticleEmitter emitter = BaseParticleEmitter();
 
 	PerformanceProfiler profiler = PerformanceProfiler(&emitter);
 
+	// Variables to control camera
+	float radius = 30.0f;
+	float angleSpeed = 0.25f;
+	float cameraHeight = 30.0f;
+	bool orbitEnabled = false;
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -174,19 +179,21 @@ int main()
 		double deltaTime = currentTime - previousFrameTime;
 		previousFrameTime = currentTime;
 
-		//float radius = 30.0f; // Distance from origin
-		//float angle = glfwGetTime() *0.25f; // Use time to animate
 
-		//cameraPosition.x = radius * cos(angle);
-		//cameraPosition.z = radius * sin(angle);
-		//cameraPosition.y = 30.0f; // Keep Y constant for a horizontal orbit
+		// Animate or stop orbiting camera
+		static float angle = 0.0f;
+		if (orbitEnabled) {
+			angle = glfwGetTime() * angleSpeed;
+		}
+
+		// Update camera position based on controls
+		cameraPosition.x = radius * cos(angle);
+		cameraPosition.z = radius * sin(angle);
+		cameraPosition.y = cameraHeight;
 
 		// Recalculate view matrix
-		//view = glm::lookAt(cameraPosition, targetPosition, up);
+		view = glm::lookAt(cameraPosition, targetPosition, up);
 
-		/*
-		// Recalculate MVP
-		mvp = projection * view * model;*/
 
 		glfwPollEvents();
 
@@ -195,6 +202,13 @@ int main()
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+
+		ImGui::Begin("Camera Controls");
+		ImGui::Checkbox("Enable Orbit", &orbitEnabled);
+		ImGui::SliderFloat("Radius", &radius, 1.0f, 100.0f);
+		ImGui::SliderFloat("Angle Speed", &angleSpeed, 0.0f, 2.0f);
+		ImGui::SliderFloat("Camera Height", &cameraHeight, -50.0f, 50.0f);
+		ImGui::End();
 
 		emitter.Editor();
 		profiler.Display();
