@@ -3,17 +3,17 @@ layout(local_size_x = 64) in; // 64 threads per group
 
 uniform float uDeltaTime; 
 
-layout(binding = 1, offset = 0) uniform atomic_uint activeParticleCount;
+layout(binding = 1, offset = 0) uniform atomic_uint activeParticleCount; //atomic buffer for active particle count
 
-layout(std430, binding = 2) buffer PositionBuffer {
+layout(std430, binding = 2) buffer PositionBuffer { // Position SSBO
     vec3 pos[];
 };
 
-layout(std430, binding = 5) buffer VelocityBuffer {
+layout(std430, binding = 5) buffer VelocityBuffer { // Velocity SSBO
     vec3 velocity[];
 };
 
-layout(std430, binding = 6) buffer lifetimeBuffer {
+layout(std430, binding = 6) buffer lifetimeBuffer { // Lifetime SSBO
     float lifetime[];
 };
 
@@ -26,6 +26,7 @@ void main() {
     uint globalIdx = gl_GlobalInvocationID.x;
 
     // --- Load global memory into shared memory ---
+    // Coalesced memory access pattern
     sharedPos[localIdx] = pos[globalIdx];
     sharedVel[localIdx] = velocity[globalIdx];
     sharedLife[localIdx] = lifetime[globalIdx];
@@ -51,3 +52,4 @@ void main() {
     pos[globalIdx] = sharedPos[localIdx];
     lifetime[globalIdx] = sharedLife[localIdx];
 }
+
