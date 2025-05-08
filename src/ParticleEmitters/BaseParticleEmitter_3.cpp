@@ -248,11 +248,8 @@ float* BaseParticleEmitter_3::editorPropertiesToFloatArray()
 
 		std::vector<float> propertyVec = modifier->AsFloats();
 
-		std::cout << "Property:" << std::endl;
-
 		for (size_t i = 0; i < propertyVec.size(); i++)
 		{
-			std::cout << propertyVec[i] << std::endl;
 			properties[offset] = propertyVec[i];
 			offset++;
 		}

@@ -90,12 +90,14 @@ void ParticleEmitter::Editor() {
 		Reload();
 	}
 
+	/*
 	ImGui::Separator();
 
 	for (size_t i = 0; i < overLifetimeModifiers.size(); ++i) {
 		IParticlePropertyOverLifetimeModifer* modifier = overLifetimeModifiers[i];
 		modifier->Editor();
 	}
+	*/
 
 	ImGui::Separator();
 
